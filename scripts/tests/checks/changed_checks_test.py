@@ -40,7 +40,7 @@ class ChangedChecksTest(unittest.TestCase):
     def test_domain_reaches_all_consumers_but_not_unrelated_bindings(self):
         self.assertEqual(gates.dependents(ROOT, {'ubaa_domain'}),
                          {'ubaa_domain', 'ubaa_platform', 'ubaa_app', 'ubaa_ui', 'ubaa_host',
-                          'ubaa_flutter', 'ubaa_test_support'})
+                          'ubaa_flutter', 'ubaa_mail', 'ubaa_test_support'})
 
     def test_tests_only_check_own_package(self):
         self.assertEqual(self.plan('packages/ubaa_ui/test/navigation/read_test.dart')['packages'], ['ubaa_ui'])

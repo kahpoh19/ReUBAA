@@ -10,8 +10,8 @@ workspace:
   - packages/ubaa_bindings
   - packages/ubaa_host
   - apps/ubaa_flutter
-  - packages/ubaa_test_support
   - packages/ubaa_mail
+  - packages/ubaa_test_support
 
 dev_dependencies:
   flutter_lints: ^6.0.0
