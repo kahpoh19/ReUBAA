@@ -7,7 +7,7 @@
 
 namespace {
 
-constexpr const wchar_t kSingleInstanceMutex[] = L"Local\\io.github.kahpoh19.reubaa.single_instance";
+constexpr const wchar_t kSingleInstanceMutex[] = L"Local\\cn.edu.reubaa.single_instance";
 constexpr const wchar_t kWindowClassName[] = L"FLUTTER_RUNNER_WIN32_WINDOW";
 constexpr const wchar_t kWindowTitle[] = L"ReUBAA";
 

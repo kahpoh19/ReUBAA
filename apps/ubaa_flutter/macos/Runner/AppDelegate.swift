@@ -7,7 +7,7 @@ class AppDelegate: FlutterAppDelegate {
     super.applicationDidFinishLaunching(notification)
     DistributedNotificationCenter.default().addObserver(
       self, selector: #selector(activateGUI),
-      name: Notification.Name("io.github.kahpoh19.reubaa.activate_gui"), object: String(geteuid()))
+      name: Notification.Name("cn.edu.reubaa.activate_gui"), object: String(geteuid()))
   }
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

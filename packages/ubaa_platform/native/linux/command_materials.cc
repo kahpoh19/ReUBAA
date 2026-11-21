@@ -49,7 +49,7 @@ int ubaa_command_materials(int operation,const char* value,char** output) {
   // 按 account 查找并要求唯一，原 item 的 schema 和 label 保持原样。
   const SecretSchema schema={"default",SECRET_SCHEMA_DONT_MATCH_NAME,
       {{"account",SECRET_SCHEMA_ATTRIBUTE_STRING},{nullptr,SECRET_SCHEMA_ATTRIBUTE_STRING}}};
-  GHashTable* attributes=secret_attributes_build(&schema,"account","io.github.kahpoh19.reubaa.secureStorage",nullptr);
+  GHashTable* attributes=secret_attributes_build(&schema,"account","cn.edu.reubaa.secureStorage",nullptr);
   GList* items=secret_service_search_sync(service,&schema,attributes,
       static_cast<SecretSearchFlags>(SECRET_SEARCH_ALL|SECRET_SEARCH_LOAD_SECRETS),nullptr,&error);
   int status=7;
@@ -69,9 +69,9 @@ int ubaa_command_materials(int operation,const char* value,char** output) {
         else {
           const SecretSchema creation_schema={"default",SECRET_SCHEMA_NONE,
               {{"account",SECRET_SCHEMA_ATTRIBUTE_STRING},{nullptr,SECRET_SCHEMA_ATTRIBUTE_STRING}}};
-          GHashTable* creation_attributes=secret_attributes_build(&creation_schema,"account","io.github.kahpoh19.reubaa.secureStorage",nullptr);
+          GHashTable* creation_attributes=secret_attributes_build(&creation_schema,"account","cn.edu.reubaa.secureStorage",nullptr);
           SecretItem* created=secret_item_create_sync(collection,&creation_schema,creation_attributes,
-              "io.github.kahpoh19.reubaa/FlutterSecureStorage",secret,SECRET_ITEM_CREATE_NONE,nullptr,&error);
+              "cn.edu.reubaa/FlutterSecureStorage",secret,SECRET_ITEM_CREATE_NONE,nullptr,&error);
           status=created?0:7;g_clear_object(&created);
           g_hash_table_unref(creation_attributes);
         }

@@ -96,7 +96,7 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "io.github.kahpoh19.reubaa" "\0"
+            VALUE "CompanyName", "cn.edu.reubaa" "\0"
             VALUE "FileDescription", "ReUBAA" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", UBAA_INTERNAL_NAME "\0"

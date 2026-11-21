@@ -20,7 +20,7 @@ let roleLock = open(roleDirectory + "/gui_role.lock", O_CREAT | O_RDWR | O_NOFOL
 if roleLock < 0 { exit(7) }
 if flock(roleLock, LOCK_EX | LOCK_NB) != 0 {
   DistributedNotificationCenter.default().postNotificationName(
-    Notification.Name("io.github.kahpoh19.reubaa.activate_gui"), object: String(geteuid()),
+    Notification.Name("cn.edu.reubaa.activate_gui"), object: String(geteuid()),
     userInfo: nil, deliverImmediately: true)
   exit(0)
 }

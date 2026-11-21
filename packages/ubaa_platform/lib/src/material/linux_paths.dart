@@ -15,7 +15,7 @@ Future<String> linuxCommandDirectory({Map<String, String>? environment}) async {
   final data = xdg != null && xdg.isNotEmpty ? xdg : '$home/.local/share';
   if (!Directory(data).isAbsolute)
     throw const FileSystemException('应用目录必须为绝对路径');
-  final current = Directory('$data/io.github.kahpoh19.reubaa');
+  final current = Directory('$data/cn.edu.reubaa');
   final legacy = Directory('$data/ubaa_flutter');
   return '${await current.exists()
       ? current.path

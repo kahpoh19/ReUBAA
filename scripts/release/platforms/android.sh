@@ -25,7 +25,7 @@ with zipfile.ZipFile(sys.argv[1]) as archive:
     for library in ('libapp.so', 'libflutter.so', 'libubaa_flutter_bridge.so'):
         assert f"lib/{os.environ['ANDROID_ABI']}/{library}" in archive.namelist(), library
 badging=Path(sys.argv[2]).read_text()
-assert "name='io.github.kahpoh19.reubaa'" in badging
+assert "name='cn.edu.reubaa'" in badging
 assert "versionName='"+os.environ['RELEASE_VERSION']+"'" in badging
 assert "versionCode='"+os.environ['RELEASE_BUILD']+"'" in badging
 assert 'application-debuggable' not in badging

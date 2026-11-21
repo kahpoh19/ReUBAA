@@ -73,7 +73,7 @@ void main() {
       expect(await state.readAsString(), 'UBAA1:B');
     });
   }
-  for (final packageName in ['io.github.kahpoh19.reubaa', '', 'io.github.kahpoh19.reubaa.synthetic']) {
+  for (final packageName in ['cn.edu.reubaa', '', 'cn.edu.reubaa.synthetic']) {
     test('Android拒绝未隔离包名=$packageName且默认配置和key不变', () async {
       _packageIdentity(packageName);
       final root = await Directory.systemTemp.createTemp('ubaa_android_guard_');
@@ -84,7 +84,7 @@ void main() {
       final defaults = <String, String>{
         'FlutterSecureStorageConfiguration': 'synthetic-no-algorithm-marker',
         'FlutterSecureKeyStorage': 'synthetic-wrapped-key',
-        'io.github.kahpoh19.reubaa.keystore-alias': 'synthetic-alias',
+        'cn.edu.reubaa.keystore-alias': 'synthetic-alias',
       };
       final before = Map<String, String>.of(defaults);
       var pluginCalls = 0;
@@ -117,7 +117,7 @@ void main() {
     });
   }
   test('Android独立包身份通过后插件Mock通道可写读重开删除', () async {
-    _packageIdentity('io.github.kahpoh19.reubaa.synthetic.materials');
+    _packageIdentity('cn.edu.reubaa.synthetic.materials');
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     final root = await Directory.systemTemp.createTemp('ubaa_android_private_');

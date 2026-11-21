@@ -61,9 +61,9 @@ Future<Directory> _platformSupportDirectory() async {
   if (!Platform.isMacOS) return getApplicationSupportDirectory();
   final home = systemMaterialDirectory().parent.parent.parent.parent.path;
   final legacy = Directory(
-    '$home/Library/Containers/io.github.kahpoh19.reubaa/Data/Library/Application Support/io.github.kahpoh19.reubaa',
+    '$home/Library/Containers/cn.edu.reubaa/Data/Library/Application Support/cn.edu.reubaa',
   );
-  final current = Directory('$home/Library/Application Support/io.github.kahpoh19.reubaa');
+  final current = Directory('$home/Library/Application Support/cn.edu.reubaa');
   final oldExists = await Directory('${legacy.path}/UBAA').exists();
   final currentExists = await Directory('${current.path}/UBAA').exists();
   if (oldExists && currentExists)
