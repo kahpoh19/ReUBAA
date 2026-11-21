@@ -14,7 +14,7 @@ class UbaaSplashView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Text(
-              'UBAA',
+              'ReUBAA',
               style: textTheme.displayLarge?.copyWith(
                 fontWeight: FontWeight.w500,
                 fontSize: 72,

@@ -2,15 +2,15 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "UBAA HarmonyOS entry module"
+      "value": "ReUBAA HarmonyOS entry module"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "UBAA HarmonyOS application entry"
+      "value": "ReUBAA HarmonyOS application entry"
     },
     {
       "name": "EntryAbility_label",
-      "value": "UBAA"
+      "value": "ReUBAA"
     }
   ]
 }

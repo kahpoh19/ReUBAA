@@ -6,10 +6,10 @@
 PRODUCT_NAME = UBAA
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = cn.edu.ubaa
+PRODUCT_BUNDLE_IDENTIFIER = io.github.kahpoh19.reubaa
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 cn.edu.ubaa. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 ReUBAA contributors. MIT License.
 
 // 默认保持自动签名，本机可用独立配置选择固定开发证书。
 UBAA_CODE_SIGN_STYLE = Automatic

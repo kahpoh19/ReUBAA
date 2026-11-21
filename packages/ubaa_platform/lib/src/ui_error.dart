@@ -166,7 +166,7 @@ class UiErrorMapper {
         message: switch (failure) {
           InitializationFailure.configuration => '应用配置无法读取，请检查配置或恢复备份后重新打开。',
           InitializationFailure.session => '登录信息无法读取，请检查访问权限或恢复备份后重新打开。',
-          InitializationFailure.resourceBusy => 'UBAA 已在另一个窗口打开，请先关闭它后重新打开。',
+          InitializationFailure.resourceBusy => 'ReUBAA 已在另一个窗口打开，请先关闭它后重新打开。',
           InitializationFailure.bridgeIncompatible => '应用组件版本不一致，请重新安装完整的同一版本。',
           InitializationFailure.componentUnavailable =>
             '应用运行组件暂不可用，请重新打开；若仍失败，请重新安装完整版本。',

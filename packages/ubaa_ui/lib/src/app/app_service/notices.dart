@@ -206,7 +206,7 @@ class UpdateRequiredBanner extends StatelessWidget {
     key: const ValueKey('home-update-required'),
     icon: Icons.system_update_outlined,
     emphasis: true,
-    title: '请更新 UBAA',
+    title: '请更新 ReUBAA',
     body: '当前版本暂时无法访问学校服务，本机已保存的课表、日程和缓存内容仍可查看。',
     actions: [
       if (onUpdate != null)

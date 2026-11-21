@@ -46,7 +46,7 @@ extension _UbaaAppHostReminders on _UbaaAppHostState {
       if (messenger != null) {
         UbaaFeedback.showOn(
           messenger,
-          '没有通知权限，请先在系统设置里允许 UBAA 发送通知',
+          '没有通知权限，请先在系统设置里允许 ReUBAA 发送通知',
           kind: UbaaFeedbackKind.warning,
         );
       }

@@ -12,6 +12,6 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('UBAA 登录'), findsOneWidget);
+    expect(find.text('ReUBAA 登录'), findsOneWidget);
   });
 }

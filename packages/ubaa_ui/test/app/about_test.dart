@@ -11,12 +11,12 @@ void main() {
     await _mount(tester);
     await openUtility(tester, '关于');
     expect(find.text('关于'), findsOneWidget);
-    expect(find.text('UBAA'), findsOneWidget);
+    expect(find.text('ReUBAA'), findsOneWidget);
     expect(find.text('开源项目（GitHub）'), findsOneWidget);
     expect(find.text('反馈建议（Issues）'), findsOneWidget);
     expect(find.byType(TextField), findsNothing);
     final card = find.ancestor(
-      of: find.text('UBAA'),
+      of: find.text('ReUBAA'),
       matching: find.byType(Card),
     );
     expect(
@@ -84,7 +84,7 @@ void main() {
     expect(find.text(AppLink.feedback.url), findsOneWidget);
     await tester.tap(find.text('复制地址'));
     await tester.pumpAndSettle();
-    expect(clipboard, 'https://github.com/BUAASubnet/UBAA/issues');
+    expect(clipboard, 'https://github.com/kahpoh19/UBAA/issues');
   });
 
   testWidgets('关于离开后迟到外链失败不弹回旧页且在途不重复打开', (tester) async {

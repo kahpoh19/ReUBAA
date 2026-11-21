@@ -13,7 +13,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('UBAA 登录'), findsOneWidget);
+    expect(find.text('ReUBAA 登录'), findsOneWidget);
     await tester.enterText(find.byType(TextField).at(0), '2020000000');
     await tester.enterText(find.byType(TextField).at(1), 'demo-password');
     await tester.pump();

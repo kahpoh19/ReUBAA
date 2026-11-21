@@ -70,7 +70,7 @@ val toolVersions = Properties().apply {
 // 部分插件仍使用旧 Android DSL，AGP 9 兼容模式保留此入口。
 @Suppress("DEPRECATION")
 android {
-    namespace = "cn.edu.ubaa.ubaa_flutter"
+    namespace = "io.github.kahpoh19.reubaa"
     compileSdkVersion("android-${toolVersions.getProperty("ANDROID_API")}")
     buildToolsVersion = toolVersions.getProperty("ANDROID_BUILD_TOOLS")
     ndkVersion = toolVersions.getProperty("ANDROID_NDK")
@@ -90,7 +90,7 @@ android {
 
     defaultConfig {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        applicationId = "cn.edu.ubaa"
+        applicationId = "io.github.kahpoh19.reubaa"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

@@ -105,14 +105,14 @@ class _AboutViewState extends State<AboutView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'UBAA',
+                          'ReUBAA',
                           style: theme.textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '北航校园生活助手',
+                          '北航校园生活助手 · 基于开源项目 UBAA 修改',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -153,11 +153,11 @@ class _AboutViewState extends State<AboutView> {
                 if (i > 0) const Divider(height: 1),
                 ListTile(
                   enabled: !opening,
-                  leading: Icon(
-                    link == AppLink.project
-                        ? Icons.code
-                        : Icons.feedback_outlined,
-                  ),
+                  leading: Icon(switch (link) {
+                    AppLink.project => Icons.code,
+                    AppLink.feedback => Icons.feedback_outlined,
+                    AppLink.upstream => Icons.call_split,
+                  }),
                   title: Text(link.label),
                   trailing: const Icon(Icons.open_in_new, size: 18),
                   onTap: () => _open(link),

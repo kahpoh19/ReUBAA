@@ -13,7 +13,7 @@ from repo import ROOT
 from toolchain import load_environment
 
 APP = ROOT / "apps/ubaa_flutter"
-APPLICATION_ID = "cn.edu.ubaa.synthetic.materials"
+APPLICATION_ID = "io.github.kahpoh19.reubaa.synthetic.materials"
 ENTRY = "integration_test/platform/credentials/material_test.dart"
 DEFINE = "--dart-define=UBAA_SYNTHETIC_ANDROID_MATERIALS=true"
 

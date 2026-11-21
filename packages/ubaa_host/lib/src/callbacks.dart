@@ -61,7 +61,7 @@ extension _UbaaAppHostCallbacks on _UbaaAppHostState {
             : '保存完整诊断',
         child: child!,
       ),
-      title: 'UBAA',
+      title: 'ReUBAA',
       scaffoldMessengerKey: _messengerKey,
       navigatorKey: _navigatorKey,
       locale: UbaaTheme.locale,

@@ -65,7 +65,7 @@ extension AgendaFileExport on AgendaViewState {
       }
       final message = await saver(
         value,
-        'UBAA-${agendaDate(selected.start)}-${agendaDate(selected.end)}.ics',
+        'ReUBAA-${agendaDate(selected.start)}-${agendaDate(selected.end)}.ics',
         () => current(token),
       );
       if (current(token) && message != null)

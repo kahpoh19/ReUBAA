@@ -56,7 +56,7 @@ void main() {
     addTearDown(tester.view.resetPadding);
     await tester.pumpWidget(_login());
     expect(
-      tester.getRect(find.text('UBAA 登录')).top,
+      tester.getRect(find.text('ReUBAA 登录')).top,
       greaterThanOrEqualTo(24 + 32),
     );
     final position = tester

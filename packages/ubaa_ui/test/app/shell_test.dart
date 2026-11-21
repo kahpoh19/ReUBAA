@@ -9,7 +9,7 @@ void _registerShellTests() {
       MaterialApp(theme: UbaaTheme.light(), home: const UbaaSplashView()),
     );
 
-    expect(find.text('UBAA'), findsOneWidget);
+    expect(find.text('ReUBAA'), findsOneWidget);
     expect(find.text('Make BUAA Great Again'), findsOneWidget);
 
     await tester.pumpWidget(
@@ -36,7 +36,7 @@ void _registerShellTests() {
     );
     await tester.pump();
 
-    expect(find.text('UBAA 登录'), findsOneWidget);
+    expect(find.text('ReUBAA 登录'), findsOneWidget);
     expect(find.text('验证码'), findsNothing);
     expect(find.textContaining('安全存储'), findsOneWidget);
   });

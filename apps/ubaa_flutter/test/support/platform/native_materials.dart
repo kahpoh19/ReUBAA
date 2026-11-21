@@ -47,7 +47,7 @@ Future<SecureMaterialStore> createNativeTestMaterials({
     if (os == 'android') {
       // 插件还使用固定配置、包装key和Keystore，必须先核对真实应用沙箱。
       final info = await PackageInfo.fromPlatform();
-      if (info.packageName != 'cn.edu.ubaa.synthetic.materials') {
+      if (info.packageName != 'io.github.kahpoh19.reubaa.synthetic.materials') {
         throw StateError('Android原生材料测试必须通过android_materials.py独立Debug包运行');
       }
     }

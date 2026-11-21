@@ -188,7 +188,7 @@ extension _UbaaAppHostAutoSignin on _UbaaAppHostState {
                   ScheduledNotification(
                     id: _noticeId('signin|$s'),
                     title: '${_signinNames[s]} 快上课了',
-                    body: '点开 UBAA 自动签到，签好前请保持应用在前台',
+                    body: '点开 ReUBAA 自动签到，签好前请保持应用在前台',
                     at: at,
                   ),
             ])
@@ -317,7 +317,7 @@ extension _UbaaAppHostAutoSignin on _UbaaAppHostState {
         _notifySigninOnce(
           'login|${homeDateKey(homeCampusTime(now))}',
           '自动签到暂停',
-          '登录已失效，请打开 UBAA 重新登录',
+          '登录已失效，请打开 ReUBAA 重新登录',
         );
         return;
       }

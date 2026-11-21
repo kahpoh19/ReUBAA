@@ -87,7 +87,7 @@ export default class AgendaFilePlugin implements FlutterPlugin, MethodCallHandle
       const data = new systemShare.SharedData({
         utd: uniformTypeDescriptor.UniformDataType.FILE,
         uri: fileUri.getUriFromPath(path),
-        title: 'UBAA 错误报告',
+        title: 'ReUBAA 错误报告',
       });
       await new systemShare.ShareController(data).show(this.context, {
         selectionMode: systemShare.SelectionMode.SINGLE,

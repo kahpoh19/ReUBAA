@@ -1,28 +1,29 @@
 <div align="center">
 
-<img src="packages/ubaa_ui/assets/icons/app_icon.png" width="112" alt="UBAA 图标">
+<img src="packages/ubaa_ui/assets/icons/app_icon.png" width="112" alt="ReUBAA 图标">
 
-# UBAA
+# ReUBAA
 
-**智慧北航 Remake：北航学生的一站式校园助手**
+**基于 [UBAA](https://github.com/BUAASubnet/UBAA) 的个人修改版**
 
-课表、作业、成绩、选课、预约、日程和云盘，一个应用全部搞定。
+在原版课表、作业、成绩、选课、预约、日程和云盘的基础上，加了几项自己常用的功能。
 
-[![最新版本](https://img.shields.io/github/v/release/BUAASubnet/UBAA?include_prereleases&label=%E7%89%88%E6%9C%AC&color=2f7cf6)](https://github.com/BUAASubnet/UBAA/releases)
-[![下载量](https://img.shields.io/github/downloads/BUAASubnet/UBAA/total?label=%E4%B8%8B%E8%BD%BD&color=2fb67c)](https://github.com/BUAASubnet/UBAA/releases)
-[![Stars](https://img.shields.io/github/stars/BUAASubnet/UBAA?style=flat&logo=github&label=Stars)](https://github.com/BUAASubnet/UBAA/stargazers)
-[![许可证](https://img.shields.io/github/license/BUAASubnet/UBAA?label=%E8%AE%B8%E5%8F%AF%E8%AF%81)](LICENSE)
-
-![Rust](https://img.shields.io/badge/Rust-1.95.0-orange.svg?style=flat&logo=rust)
-![Flutter](https://img.shields.io/badge/Flutter-3.41.9-blue.svg?style=flat&logo=flutter)
-![Dart](https://img.shields.io/badge/Dart-3.11.5-0175C2.svg?style=flat&logo=dart)
+[![许可证](https://img.shields.io/badge/%E8%AE%B8%E5%8F%AF%E8%AF%81-MIT-2fb67c)](LICENSE)
 ![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20HarmonyOS%20%7C%20Desktop-2fb67c.svg?style=flat)
 
-[**下载安装**](https://www.ubaa.top/download) · [**使用指南**](https://www.ubaa.top) · [功能一览](#功能一览) · [常见问题](https://www.ubaa.top/tech/troubleshooting) · [问题反馈](https://github.com/BUAASubnet/UBAA/issues)
+[原版项目](https://github.com/BUAASubnet/UBAA) · [原版使用指南](https://www.ubaa.top) · [问题反馈](https://github.com/kahpoh19/UBAA/issues)
 
 </div>
 
 ---
+
+## 与原版的区别
+
+- 🔔 **课程与待办通知**：设置页“通知”分组里分别开关，默认关闭。课程提醒默认课前 10、30 分钟，待办提醒默认截止前 4 小时、1 天，都可以勾选其他档位或自定义。
+- 🗓️ **今日 / 明日课表切换**：首页今日课程结束后自动显示明日课表，标题栏右侧可以手动切换。
+- 🏷️ **独立包名**：应用改名 ReUBAA，包名 `io.github.kahpoh19.reubaa`，可以和原版 UBAA 同时安装。
+
+ReUBAA 与原版维护者无关，问题请在本仓库反馈，不要提到原版仓库。以下内容沿用原版说明。
 
 ## 为什么选择 UBAA
 
@@ -117,6 +118,6 @@ UBAA 参考或使用了以下开源项目，感谢它们的作者：
 
 ## 免责声明与许可
 
-UBAA 由学生开发者制作和维护，是第三方工具，与北京航空航天大学官方无任何关系。课程、成绩和预约结果以学校系统为准。
+UBAA 由学生开发者制作和维护，是第三方工具，与北京航空航天大学官方无任何关系。课程、成绩和预约结果以学校系统为准。ReUBAA 是它的 fork，同样与学校官方无关。
 
-本项目基于 [MIT 许可证](LICENSE) 开源。
+本项目基于 [MIT 许可证](LICENSE) 开源，保留原作者的版权声明；第三方组件的许可见[第三方声明](THIRD_PARTY_NOTICES.md)。

@@ -15,7 +15,7 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <application
         android:allowBackup="false"
-        android:label="UBAA"
+        android:label="ReUBAA"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -57,15 +57,15 @@
             </intent-filter>
         </activity>
         <activity android:name=".widgets.ScheduleWidgetActivity" android:exported="false" android:label="离线课表" android:theme="@android:style/Theme.Material.Light.NoActionBar" />
-        <receiver android:name=".widgets.ScheduleWidgetProvider" android:exported="false" android:label="UBAA 周课表">
+        <receiver android:name=".widgets.ScheduleWidgetProvider" android:exported="false" android:label="ReUBAA 周课表">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/schedule_widget_info" />
         </receiver>
-        <receiver android:name=".widgets.TodayScheduleWidgetProvider" android:exported="false" android:label="UBAA 今日课程">
+        <receiver android:name=".widgets.TodayScheduleWidgetProvider" android:exported="false" android:label="ReUBAA 今日课程">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/schedule_widget_info" />
         </receiver>
-        <receiver android:name=".widgets.UpcomingScheduleWidgetProvider" android:exported="false" android:label="UBAA 未来三天">
+        <receiver android:name=".widgets.UpcomingScheduleWidgetProvider" android:exported="false" android:label="ReUBAA 未来三天">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/schedule_widget_info" />
         </receiver>

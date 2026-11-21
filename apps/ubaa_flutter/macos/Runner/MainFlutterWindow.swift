@@ -42,7 +42,7 @@ class MainFlutterWindow: NSWindow {
     }
 
     super.awakeFromNib()
-    title = "UBAA"
+    title = "ReUBAA"
   }
 
   /// 偏好键与 Dart 端 ThemePreferenceStore 一致；未保存时跟随系统外观。

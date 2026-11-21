@@ -135,11 +135,11 @@ class _UbaaLoginViewState extends State<UbaaLoginView> {
                         children: <Widget>[
                           const Center(child: UiAppIcon(size: 72)),
                           const SizedBox(height: 16),
-                          // 大字号下整体缩小，不把“UBAA 登录”拆成两行。
+                          // 大字号下整体缩小，不把“ReUBAA 登录”拆成两行。
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              'UBAA 登录',
+                              'ReUBAA 登录',
                               maxLines: 1,
                               style: Theme.of(context).textTheme.headlineMedium,
                             ),
@@ -289,7 +289,7 @@ class _UbaaLoginViewState extends State<UbaaLoginView> {
                                   vertical: 8,
                                 ),
                                 child: Text(
-                                  '开源项目: github.com/BUAASubnet/UBAA',
+                                  '开源项目: github.com/kahpoh19/UBAA',
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: Theme.of(

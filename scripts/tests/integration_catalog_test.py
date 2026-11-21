@@ -464,7 +464,7 @@ class AndroidMaterialsTest(unittest.TestCase):
 
     def test_生产APK即使Debug也拒绝启动(self):
         with self.assertRaisesRegex(ValueError, "独立合成"):
-            self.invoke("package: name='cn.edu.ubaa'\napplication-debuggable\n")
+            self.invoke("package: name='io.github.kahpoh19.reubaa'\napplication-debuggable\n")
 
     def test_独立身份的Release也拒绝启动(self):
         with self.assertRaisesRegex(ValueError, "Debug"):

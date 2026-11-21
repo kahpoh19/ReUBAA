@@ -57,7 +57,7 @@ def prepare(platform):
         profile_file = PRIVATE / 'profile.mobileprovision'
         profile_file.write_bytes(base64.b64decode(os.environ['IOS_PROVISIONING_PROFILE_BASE64']))
         profile = plistlib.loads(subprocess.check_output(['security', 'cms', '-D', '-i', str(profile_file)]))
-        if profile['Entitlements']['application-identifier'] != team + '.cn.edu.ubaa':
+        if profile['Entitlements']['application-identifier'] != team + '.io.github.kahpoh19.reubaa':
             raise ValueError('iOS Profile 的应用或 Team 不匹配')
         if profile['Entitlements'].get('get-task-allow') or 'ProvisionedDevices' in profile:
             raise ValueError('iOS 必须使用 App Store Profile')
@@ -66,7 +66,7 @@ def prepare(platform):
         shutil.copy2(profile_file, installed)
         (PRIVATE / 'installed_profile.txt').write_text(str(installed))
         options = {'method': 'app-store-connect', 'destination': 'export', 'signingStyle': 'manual',
-                   'teamID': team, 'signingCertificate': identity[0], 'provisioningProfiles': {'cn.edu.ubaa': profile['UUID']},
+                   'teamID': team, 'signingCertificate': identity[0], 'provisioningProfiles': {'io.github.kahpoh19.reubaa': profile['UUID']},
                    'manageAppVersionAndBuildNumber': False, 'stripSwiftSymbols': True, 'uploadSymbols': True}
         (PRIVATE / 'ExportOptions.plist').write_bytes(plistlib.dumps(options))
         values['IOS_PROFILE_UUID'] = profile['UUID']

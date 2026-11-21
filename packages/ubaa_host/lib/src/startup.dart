@@ -112,7 +112,7 @@ Widget _startupApplication({
   DiagnosticReportExporter reportExporter = const DiagnosticReportExporter(),
   Future<bool> Function(AppLink)? openLink,
 }) => MaterialApp(
-  title: 'UBAA',
+  title: 'ReUBAA',
   locale: UbaaTheme.locale,
   supportedLocales: UbaaTheme.supportedLocales,
   localizationsDelegates: UbaaTheme.localizationsDelegates,

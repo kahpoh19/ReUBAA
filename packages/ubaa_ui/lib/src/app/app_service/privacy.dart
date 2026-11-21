@@ -110,7 +110,7 @@ class _PrivacyConsentDialogState extends State<PrivacyConsentDialog> {
           Text(
             _updated
                 ? '隐私政策已更新到第 ${widget.policy.version} 版，主要变化：'
-                : '使用 UBAA 前，请阅读以下说明和隐私政策全文。',
+                : '使用 ReUBAA 前，请阅读以下说明和隐私政策全文。',
           ),
           const SizedBox(height: 12),
           for (final point in points) _Point(point),

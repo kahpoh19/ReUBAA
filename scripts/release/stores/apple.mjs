@@ -19,9 +19,9 @@ async function api(path) {
   return response.json();
 }
 try {
-  const apps = await api("/apps?filter[bundleId]=cn.edu.ubaa");
+  const apps = await api("/apps?filter[bundleId]=io.github.kahpoh19.reubaa");
   const app = apps.data?.[0];
-  if (!app) throw Error("App Store Connect 找不到 cn.edu.ubaa");
+  if (!app) throw Error("App Store Connect 找不到 io.github.kahpoh19.reubaa");
   console.log(`App Store Connect 应用访问成功：${app.id}`);
   const [operation, file] = process.argv.slice(2);
   if (operation === "probe") {

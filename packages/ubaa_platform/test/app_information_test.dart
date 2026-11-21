@@ -22,8 +22,9 @@ void main() {
     expect(await info.version(), '3.2.1+19');
     for (final link in AppLink.values) expect(await info.open(link), isTrue);
     expect(launcher.urls, [
+      'https://github.com/kahpoh19/UBAA',
+      'https://github.com/kahpoh19/UBAA/issues',
       'https://github.com/BUAASubnet/UBAA',
-      'https://github.com/BUAASubnet/UBAA/issues',
     ]);
     expect(
       launcher.modes,

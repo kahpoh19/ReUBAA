@@ -7,9 +7,9 @@
 
 namespace {
 
-constexpr const wchar_t kSingleInstanceMutex[] = L"Local\\cn.edu.ubaa.single_instance";
+constexpr const wchar_t kSingleInstanceMutex[] = L"Local\\io.github.kahpoh19.reubaa.single_instance";
 constexpr const wchar_t kWindowClassName[] = L"FLUTTER_RUNNER_WIN32_WINDOW";
-constexpr const wchar_t kWindowTitle[] = L"UBAA";
+constexpr const wchar_t kWindowTitle[] = L"ReUBAA";
 
 // 已有实例时唤起它的窗口；窗口尚未创建时只退出当前进程。
 void ActivateRunningInstance() {
