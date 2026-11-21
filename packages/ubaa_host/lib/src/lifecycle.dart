@@ -41,6 +41,25 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
   Timer? _reminderDelay, _reminderTimer;
   int _reminderGeneration = 0, _reminderRound = 0;
 
+  late final KeepAliveGateway _keepAlive =
+      widget.keepAliveGateway ??
+      (widget.backend == null && widget.backendFactory == null
+          ? ChannelKeepAliveGateway()
+          : const UnavailableKeepAliveGateway());
+  late final _autoSigninStore = AutoSigninStore(values: _preferences);
+  AutoSigninSettings _autoSignin = const AutoSigninSettings();
+  bool _autoSigninLoaded = false, _signinAwake = false;
+  bool _signinBusy = false, _signinRefreshing = false;
+  bool? _batteryUnrestricted;
+  String? _signinStatus;
+  Object? _signinStamp;
+  Timer? _signinPlanDelay, _signinWake, _signinLoop;
+  List<DateTime> _signinStarts = const [];
+  final _signinNames = <DateTime, String>{};
+  final _signinSettled = <DateTime>{}, _signinSeen = <DateTime>{};
+  final _signinReported = <String>{};
+  StreamSubscription<void>? _wakeSubscription;
+
   final _messengerKey = GlobalKey<ScaffoldMessengerState>();
   final _navigatorKey = GlobalKey<NavigatorState>();
   DialogRoute<void>? _captchaDialogRoute;
@@ -344,6 +363,9 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
         _syncReminders();
       });
     }
+    _controller.addListener(_syncAutoSignin);
+    _wakeSubscription = _keepAlive.wakes.listen((_) => _onSigninWake());
+    unawaited(_loadAutoSignin());
     _networkChanges =
         widget.networkChanges ??
         (widget.backend == null && widget.backendFactory == null
@@ -373,6 +395,10 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
     _updateReminderTimer?.cancel();
     _reminderDelay?.cancel();
     _reminderTimer?.cancel();
+    _signinPlanDelay?.cancel();
+    _signinWake?.cancel();
+    _signinLoop?.cancel();
+    unawaited(_wakeSubscription?.cancel());
     _crashHandlers?.dispose();
     _stopNetworkChanges();
     WidgetsBinding.instance.removeObserver(this);
@@ -389,6 +415,7 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
     unawaited(_updatePromptSubscription?.cancel());
     _controller.removeListener(_syncScheduleWidgets);
     _controller.removeListener(_syncReminders);
+    _controller.removeListener(_syncAutoSignin);
     _scheduleWidgetPublisher?.dispose();
     _gradeWatch.dispose();
     _controller.dispose();
@@ -406,7 +433,8 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
         unawaited(_attemptAppService(force: true));
       }
       _stopNetworkChanges();
-      _readyController?.setAppForeground(false);
+      // 签到窗口里切到后台仍按前台处理，窗口结束时还原。
+      _readyController?.setAppForeground(_signinAwake);
       return;
     }
     // inactive 已有可见窗口；桌面可能一直没有焦点，不能等待 resumed 才解暂停。
@@ -418,6 +446,10 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
       if (_readyController == null) return;
       _listenNetworkChanges();
       _controller.setAppForeground(true);
+      if (_autoSignin.enabled) {
+        unawaited(_refreshBattery());
+        _armSigninWake();
+      }
       _syncAppServicePopup();
       unawaited(_attemptAppService(force: false));
       unawaited(_controller.refreshAppBootstrap());

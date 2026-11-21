@@ -218,6 +218,8 @@ extension _UbaaAppHostCallbacks on _UbaaAppHostState {
         onAccentChanged: _setAccent,
       ),
       notifications: _notificationControls,
+      autoSignin: _autoSigninControls,
+      onUnlockHidden: _unlockAutoSigninCallback,
       user: _controller.displayUser,
       snapshots: _controller.snapshots,
       homeState: _controller.homeState,

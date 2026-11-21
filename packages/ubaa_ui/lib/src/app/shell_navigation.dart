@@ -115,6 +115,7 @@ extension UbaaShellNavigation on _UbaaMainShellState {
             ? AboutView(
                 loadVersion: widget.onLoadAppVersion,
                 openLink: widget.onOpenAppLink,
+                onUnlockHidden: widget.onUnlockHidden,
               )
             : _buildProfile()
       : _selectedIndex == UiDestination.settings.index
@@ -294,6 +295,7 @@ extension UbaaShellNavigation on _UbaaMainShellState {
     onReadDiagnostics: widget.onReadDiagnostics,
     appearance: widget.appearance,
     notifications: widget.notifications,
+    autoSignin: widget.autoSignin,
   );
   Widget _buildRailContent(BuildContext context) => uiShellRail(
     context,

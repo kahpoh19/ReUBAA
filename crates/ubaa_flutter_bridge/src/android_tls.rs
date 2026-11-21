@@ -5,8 +5,9 @@ use jni::objects::JObject;
 use jni::sys::{JNI_TRUE, jboolean};
 
 // JVM精确查找此符号；ubaa_flutter包中的下划线按JNI规则编码为_1。
+// 界面和后台服务都会拉起引擎，初始化放在宿主的 NativeTls 单例里。
 #[unsafe(no_mangle)]
-pub extern "system" fn Java_cn_edu_ubaa_ubaa_1flutter_MainActivity_initializeTls<'caller>(
+pub extern "system" fn Java_cn_edu_ubaa_ubaa_1flutter_NativeTls_initializeTls<'caller>(
     mut env: EnvUnowned<'caller>,
     _this: JObject<'caller>,
     context: JObject<'caller>,

@@ -4,8 +4,8 @@ part of 'ubaa_app_host.dart';
 const _courseNoticeGroup = 'course';
 const _todoNoticeGroup = 'todo';
 
-/// iOS 最多同时排 64 条本地通知，留几条余量；Android 也没必要排更多。
-const _maxScheduledNotices = 60;
+/// iOS 最多同时排 64 条本地通知，留几条给课前签到提醒；Android 也没必要排更多。
+const _maxScheduledNotices = 56;
 
 extension _UbaaAppHostReminders on _UbaaAppHostState {
   UiNotificationControls? get _notificationControls =>

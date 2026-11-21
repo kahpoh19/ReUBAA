@@ -1,33 +1,40 @@
 package cn.edu.ubaa.ubaa_flutter
 
+import android.content.Context
+import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
-import cn.edu.ubaa.ubaa_flutter.platform.AppearanceChannel
+import cn.edu.ubaa.ubaa_flutter.background.EngineHolder
+import cn.edu.ubaa.ubaa_flutter.background.KeepAlive
 import cn.edu.ubaa.ubaa_flutter.platform.AgendaFileChannel
-import cn.edu.ubaa.ubaa_flutter.platform.DefaultNetworkChannel
-import cn.edu.ubaa.ubaa_flutter.platform.PrivatePaths
-import cn.edu.ubaa.ubaa_flutter.reminders.NotificationsChannel
-import cn.edu.ubaa.ubaa_flutter.widgets.WidgetChannel
 
 class MainActivity : FlutterActivity() {
-    private external fun initializeTls(context: android.content.Context): Boolean
-    private var network: DefaultNetworkChannel? = null
-    private var paths: PrivatePaths? = null
-    private var scheduleWidgets: WidgetChannel? = null
-    private var appearance: AppearanceChannel? = null
+    // 没开后台保活时界面自己持有通道；开了以后交给 EngineHolder，界面关掉也不注销。
+    private var channels: ContextChannels? = null
     private var agendaFiles: AgendaFileChannel? = null
-    private var notifications: NotificationsChannel? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        EngineHolder.activity = this
+        super.onCreate(savedInstanceState)
+    }
+
+    // 后台服务已经起了引擎就直接接上；开着保活但还没起时由这里起一份托管引擎。
+    override fun provideFlutterEngine(context: Context): FlutterEngine? =
+        EngineHolder.cached() ?: if (KeepAlive.enabled(context)) EngineHolder.ensure(context) else null
+
+    // 托管的引擎在界面关掉后要继续跑。
+    override fun shouldDestroyEngineWithHost(): Boolean {
+        val engine = flutterEngine
+        return engine == null || engine !== EngineHolder.cached()
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        System.loadLibrary("ubaa_flutter_bridge")
-        check(initializeTls(applicationContext)) { "系统证书验证初始化失败" }
+        NativeTls.initialize(applicationContext)
         super.configureFlutterEngine(flutterEngine)
-        network = DefaultNetworkChannel(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
-        paths = PrivatePaths(this, flutterEngine.dartExecutor.binaryMessenger)
-        scheduleWidgets = WidgetChannel(this, flutterEngine.dartExecutor.binaryMessenger)
-        appearance = AppearanceChannel(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
+        if (flutterEngine !== EngineHolder.cached()) {
+            channels = ContextChannels(applicationContext, flutterEngine)
+        }
         agendaFiles = AgendaFileChannel(this, flutterEngine.dartExecutor.binaryMessenger)
-        notifications = NotificationsChannel(applicationContext, flutterEngine.dartExecutor.binaryMessenger) { this }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
@@ -36,23 +43,17 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        if (notifications?.onPermissionResult(requestCode) == true) return
+        val owner = channels ?: EngineHolder.channels()
+        if (owner?.notifications?.onPermissionResult(requestCode) == true) return
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     override fun onDestroy() {
-        notifications?.dispose()
-        notifications = null
-        network?.dispose()
-        network = null
         agendaFiles?.dispose()
         agendaFiles = null
-        paths?.dispose()
-        paths = null
-        scheduleWidgets?.dispose()
-        scheduleWidgets = null
-        appearance?.dispose()
-        appearance = null
+        channels?.let { if (!EngineHolder.owns(it)) it.dispose() }
+        channels = null
+        if (EngineHolder.activity === this) EngineHolder.activity = null
         super.onDestroy()
     }
 }

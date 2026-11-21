@@ -8,6 +8,7 @@ import 'app_service/settings.dart' show AppServiceControls, AppServiceSettings;
 import 'cache_settings.dart' show CacheSettings;
 import 'notification_settings.dart'
     show NotificationSettings, UiNotificationControls;
+import 'auto_signin_settings.dart' show AutoSigninPanel, UiAutoSigninControls;
 import 'profile_details.dart' show ProfileIdentityCard;
 import '../common/error_card.dart' show uiShowDiagnosticsDialog;
 import '../shared/dialogs/confirmation.dart' show uiConfirmIrreversible;
@@ -31,6 +32,7 @@ class ProfileView extends StatelessWidget {
     this.onClearBusinessCache,
     this.appearance = const UiAppearanceSettings(),
     this.notifications,
+    this.autoSignin,
   });
 
   final bool settingsOnly;
@@ -43,6 +45,9 @@ class ProfileView extends StatelessWidget {
 
   /// 宿主不支持提醒（如测试或未接入通知的平台）时为 null，不显示“通知”分组。
   final UiNotificationControls? notifications;
+
+  /// 关于页解锁后才有的实验功能；未解锁为 null。
+  final UiAutoSigninControls? autoSignin;
   final UserSummary? user;
   final RoutePolicy routePolicy;
 
@@ -120,6 +125,17 @@ class ProfileView extends StatelessWidget {
           const SizedBox(height: 16),
           const UiSectionTitle('通知'),
           Card(child: NotificationSettings(controls: controls)),
+        ],
+        if (autoSignin case final controls?) ...[
+          const SizedBox(height: 16),
+          UiSectionTitle(
+            '实验功能',
+            action: TextButton(
+              onPressed: () => unawaited(controls.onHide()),
+              child: const Text('隐藏'),
+            ),
+          ),
+          Card(child: AutoSigninPanel(controls: controls)),
         ],
         const SizedBox(height: 16),
         const UiSectionTitle('连接模式'),

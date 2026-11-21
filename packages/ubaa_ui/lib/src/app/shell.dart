@@ -39,6 +39,7 @@ import 'profile.dart' show ProfileView;
 import 'app_service/notices.dart' show AppServiceNotices;
 import 'app_service/settings.dart' show AppServiceControls;
 import 'notification_settings.dart' show UiNotificationControls;
+import 'auto_signin_settings.dart' show UiAutoSigninControls;
 import 'write_readback_notice.dart' show WriteReadbackNotice;
 import '../common/feature_detail.dart' show FeatureDetailView;
 import '../common/read_navigator.dart'
@@ -89,6 +90,8 @@ class UbaaMainShell extends StatefulWidget {
     this.onCompleteLogin,
     this.appearance = const UiAppearanceSettings(),
     this.notifications,
+    this.autoSignin,
+    this.onUnlockHidden,
     this.readCacheEpoch = 0,
     this.businessCacheEpoch = 0,
     this.localPreferencesRevision = 0,
@@ -226,6 +229,12 @@ class UbaaMainShell extends StatefulWidget {
 
   /// 设置页的课程与待办提醒；平台不支持通知时为 null。
   final UiNotificationControls? notifications;
+
+  /// 设置页的实验功能分组；未解锁时为 null。
+  final UiAutoSigninControls? autoSignin;
+
+  /// 关于页连点应用卡片后解锁实验功能；已解锁时为 null。
+  final Future<void> Function()? onUnlockHidden;
 
   final int readCacheEpoch;
   final int businessCacheEpoch;

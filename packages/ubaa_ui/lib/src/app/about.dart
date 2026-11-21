@@ -5,11 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:ubaa_domain/ubaa_domain.dart';
 import '../common/app_links.dart' show uiShowAppLinkFailure;
 import '../shared/layout/rail_identity.dart' show UiAppIcon;
+import '../shared/feedback.dart';
 
 class AboutView extends StatefulWidget {
-  const AboutView({this.loadVersion, this.openLink});
+  const AboutView({this.loadVersion, this.openLink, this.onUnlockHidden});
   final Future<String?> Function()? loadVersion;
   final Future<bool> Function(AppLink)? openLink;
+
+  /// 连点应用卡片解锁设置里的隐藏功能；已解锁或不支持时为 null，卡片不响应点按。
+  final Future<void> Function()? onUnlockHidden;
   @override
   State<AboutView> createState() => _AboutViewState();
 }
@@ -17,6 +21,33 @@ class AboutView extends StatefulWidget {
 class _AboutViewState extends State<AboutView> {
   String? version;
   bool loading = true, opening = false;
+  int _taps = 0;
+
+  // 跟开发者选项一样，最后几下提示还差几次。
+  void _tapCard() {
+    final unlock = widget.onUnlockHidden;
+    if (unlock == null) return;
+    _taps++;
+    final left = AutoSigninSettings.unlockTaps - _taps;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (left > 0) {
+      if (left <= 3 && messenger != null) {
+        messenger.hideCurrentSnackBar();
+        UbaaFeedback.showOn(messenger, '再点 $left 次');
+      }
+      return;
+    }
+    _taps = 0;
+    unawaited(unlock());
+    if (messenger != null) {
+      messenger.hideCurrentSnackBar();
+      UbaaFeedback.showOn(
+        messenger,
+        '隐藏功能已出现在设置里',
+        kind: UbaaFeedbackKind.success,
+      );
+    }
+  }
   @override
   void initState() {
     super.initState();
@@ -60,46 +91,50 @@ class _AboutViewState extends State<AboutView> {
       padding: UbaaTheme.pageInsets(context, top: 8),
       children: [
         Card(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              children: [
-                const UiAppIcon(size: 64),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'UBAA',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '北航校园生活助手',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      if (loading && version == null)
-                        const LoadingGlyph()
-                      else
+          child: InkWell(
+            key: const ValueKey('about-app-card'),
+            onTap: widget.onUnlockHidden == null ? null : _tapCard,
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Row(
+                children: [
+                  const UiAppIcon(size: 64),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          version == null ? '版本信息暂不可用' : '版本 $version',
-                          style: theme.textTheme.bodySmall,
+                          'UBAA',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                    ],
+                        const SizedBox(height: 2),
+                        Text(
+                          '北航校园生活助手',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        if (loading && version == null)
+                          const LoadingGlyph()
+                        else
+                          Text(
+                            version == null ? '版本信息暂不可用' : '版本 $version',
+                            style: theme.textTheme.bodySmall,
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-                if (!loading && version == null && widget.loadVersion != null)
-                  TextButton(
-                    onPressed: _loadVersion,
-                    child: const Text('重新读取版本'),
-                  ),
-              ],
+                  if (!loading && version == null && widget.loadVersion != null)
+                    TextButton(
+                      onPressed: _loadVersion,
+                      child: const Text('重新读取版本'),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
