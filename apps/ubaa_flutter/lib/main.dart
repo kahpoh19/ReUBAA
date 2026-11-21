@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:ubaa_bindings/ubaa_bindings.dart';
 import 'package:ubaa_host/ubaa_host.dart';
+import 'package:ubaa_mail/ubaa_mail.dart';
 import 'package:ubaa_platform/ubaa_platform.dart';
 
 import 'command_main.dart';
@@ -29,4 +30,5 @@ Future<void> bootstrapUbaaFlutterApp({
   debugHello: debugHello ?? bridgeHello,
   createCapabilities: createCapabilities ?? createDefaultPlatformCapabilities,
   runApplication: runApplication ?? runApp,
+  mailService: ImapMailService(),
 );

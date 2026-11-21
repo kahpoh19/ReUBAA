@@ -424,6 +424,7 @@ class FeatureGridView extends StatelessWidget {
     this.onOpenHealthCloud,
     this.onOpenBhpan,
     this.onOpenFinance,
+    this.onOpenMail,
     this.onOpenCloudPrint,
   });
   final Map<FeatureId, FeatureSnapshot> snapshots;
@@ -437,6 +438,7 @@ class FeatureGridView extends StatelessWidget {
   final VoidCallback? onOpenHealthCloud;
   final VoidCallback? onOpenBhpan;
   final VoidCallback? onOpenFinance;
+  final VoidCallback? onOpenMail;
   final VoidCallback? onOpenCloudPrint;
 
   @override
@@ -480,6 +482,13 @@ class FeatureGridView extends StatelessWidget {
 
   Widget _grid() => UiEntryList(
     children: [
+      if (onOpenMail != null)
+        UiEntryCard(
+          title: '北航邮箱',
+          icon: Icons.mail_outline,
+          subtitle: '收发 @buaa.edu.cn 的邮件',
+          onTap: onOpenMail!,
+        ),
       if (onOpenIhome != null)
         UiEntryCard(
           title: 'iHome',

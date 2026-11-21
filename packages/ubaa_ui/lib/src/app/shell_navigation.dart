@@ -111,6 +111,8 @@ extension UbaaShellNavigation on _UbaaMainShellState {
                 connecting: widget.connecting,
                 service: widget.financeService,
               )
+            : _utilityPage == mailTitle && widget.mailService != null
+            ? MailView(service: widget.mailService!)
             : _utilityPage == '关于'
             ? AboutView(
                 loadVersion: widget.onLoadAppVersion,
@@ -249,6 +251,10 @@ extension UbaaShellNavigation on _UbaaMainShellState {
       onOpenFinance:
           index == UiDestination.campus.index && widget.financeService != null
           ? () => _openUtility('财务查询')
+          : null,
+      onOpenMail:
+          index == UiDestination.campus.index && widget.mailService != null
+          ? () => _openUtility(mailTitle)
           : null,
       features: _UbaaMainShellState._tabs[index].features,
       homeState: widget.homeState,

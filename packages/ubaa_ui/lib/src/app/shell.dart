@@ -13,6 +13,7 @@ import '../shared/tab_navigation.dart'
 import '../features/ihome/view.dart';
 import '../features/health_cloud/view.dart';
 import '../features/finance/view.dart';
+import '../features/mail/view.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import '../shared/app_bar_slot.dart' show UiAppBarSlot;
@@ -112,6 +113,7 @@ class UbaaMainShell extends StatefulWidget {
     this.ihomeService,
     this.healthCloudRead,
     this.financeService,
+    this.mailService,
     this.onOpenAppLink,
     this.onLoadAllGrades,
     this.gradeScoreNotice,
@@ -259,6 +261,9 @@ class UbaaMainShell extends StatefulWidget {
 
   /// 财务收入只读服务；为空时不显示入口。
   final FinanceService? financeService;
+
+  /// 北航邮箱收发；为空时不显示入口（鸿蒙宿主暂不提供）。
+  final MailService? mailService;
   final Future<bool> Function(AppLink)? onOpenAppLink;
   final GradesAggregateLoader? onLoadAllGrades;
   final GradeScoreNotice? gradeScoreNotice;

@@ -146,6 +146,7 @@ extension _UbaaAppHostCallbacks on _UbaaAppHostState {
       ihomeService: _controller.ihomeService,
       healthCloudRead: _controller.healthCloudRead,
       financeService: _controller.financeService,
+      mailService: widget.mailService,
       campusAccountService: _controller.campusAccountService,
       bhpanService: _controller.bhpanService,
       cloudPrintService: _controller.cloudPrintService,

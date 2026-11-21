@@ -41,6 +41,7 @@ Future<void> bootstrapUbaaHost({
   PreferenceValues? preferenceValues,
   PlatformAppInformation? appInformation,
   DiagnosticReportExporter reportExporter = const DiagnosticReportExporter(),
+  MailService? mailService,
 }) async {
   ensureFlutterInitialized();
   final preferences = preferenceValues ?? PluginPreferenceValues();
@@ -85,6 +86,7 @@ Future<void> bootstrapUbaaHost({
         appInformation: information,
         diagnosticReportExporter: reportExporter,
         startupDiagnostics: diagnostics,
+        mailService: mailService,
       ),
     );
   } on Object catch (error, stackTrace) {
@@ -177,6 +179,7 @@ class UbaaAppHost extends StatefulWidget {
     this.notificationGateway,
     this.keepAliveGateway,
     this.urlOpener,
+    this.mailService,
     super.key,
   });
 
@@ -227,6 +230,9 @@ class UbaaAppHost extends StatefulWidget {
 
   /// 打开更新和公告链接；测试可以注入，默认只接受 HTTPS 并交给系统浏览器。
   final Future<bool> Function(Uri url)? urlOpener;
+
+  /// 北航邮箱收发；只有带邮件实现的宿主才传，为空时不显示入口。
+  final MailService? mailService;
 
   Future<bool> openExternalUrl(Uri url) =>
       (urlOpener ?? platform.openExternalUrl)(url);

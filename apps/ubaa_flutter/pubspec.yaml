@@ -18,6 +18,8 @@ dependencies:
     path: ../../packages/ubaa_bindings
   ubaa_host:
     path: ../../packages/ubaa_host
+  ubaa_mail:
+    path: ../../packages/ubaa_mail
   ubaa_platform:
     path: ../../packages/ubaa_platform
 
