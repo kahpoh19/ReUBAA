@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../shared/feedback.dart';
+import '../../shared/feedback.dart';
 
 /// 设置页“实验功能”分组：课前自动签到和它需要的后台运行权限。
 ///

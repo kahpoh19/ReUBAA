@@ -153,11 +153,7 @@ class _AboutViewState extends State<AboutView> {
                 if (i > 0) const Divider(height: 1),
                 ListTile(
                   enabled: !opening,
-                  leading: Icon(switch (link) {
-                    AppLink.project => Icons.code,
-                    AppLink.feedback => Icons.feedback_outlined,
-                    AppLink.upstream => Icons.call_split,
-                  }),
+                  leading: Icon(_linkIcon(link)),
                   title: Text(link.label),
                   trailing: const Icon(Icons.open_in_new, size: 18),
                   onTap: () => _open(link),
@@ -170,3 +166,9 @@ class _AboutViewState extends State<AboutView> {
     );
   }
 }
+
+IconData _linkIcon(AppLink link) => switch (link) {
+  AppLink.project => Icons.code,
+  AppLink.feedback => Icons.feedback_outlined,
+  AppLink.upstream => Icons.call_split,
+};

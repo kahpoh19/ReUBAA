@@ -38,8 +38,8 @@ import 'account/me.dart' show MeView;
 import 'profile.dart' show ProfileView;
 import 'app_service/notices.dart' show AppServiceNotices;
 import 'app_service/settings.dart' show AppServiceControls;
-import 'notification_settings.dart' show UiNotificationControls;
-import 'auto_signin_settings.dart' show UiAutoSigninControls;
+import 'settings/notification_settings.dart' show UiNotificationControls;
+import 'settings/auto_signin_settings.dart' show UiAutoSigninControls;
 import 'write_readback_notice.dart' show WriteReadbackNotice;
 import '../common/feature_detail.dart' show FeatureDetailView;
 import '../common/read_navigator.dart'

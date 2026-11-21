@@ -8,8 +8,8 @@ export 'app/app_service/notices.dart'
 export 'app/app_service/privacy.dart'
     show PrivacyConsentDialog, PrivacyPolicyPage, uiPrivacyConsentRoute;
 export 'app/app_service/settings.dart' show AppServiceControls;
-export 'app/notification_settings.dart' show UiNotificationControls;
-export 'app/auto_signin_settings.dart' show UiAutoSigninControls;
+export 'app/settings/notification_settings.dart' show UiNotificationControls;
+export 'app/settings/auto_signin_settings.dart' show UiAutoSigninControls;
 export 'app/login.dart' show UbaaLoginView;
 export 'app/login_verification.dart' show UbaaCaptchaDialog;
 export 'app/shell.dart' show UbaaMainShell;

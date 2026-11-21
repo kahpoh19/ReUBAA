@@ -6,9 +6,10 @@ import 'package:ubaa_ui/src/theme.dart';
 import '../common/section.dart';
 import 'app_service/settings.dart' show AppServiceControls, AppServiceSettings;
 import 'cache_settings.dart' show CacheSettings;
-import 'notification_settings.dart'
+import 'settings/notification_settings.dart'
     show NotificationSettings, UiNotificationControls;
-import 'auto_signin_settings.dart' show AutoSigninPanel, UiAutoSigninControls;
+import 'settings/auto_signin_settings.dart'
+    show AutoSigninPanel, UiAutoSigninControls;
 import 'profile_details.dart' show ProfileIdentityCard;
 import '../common/error_card.dart' show uiShowDiagnosticsDialog;
 import '../shared/dialogs/confirmation.dart' show uiConfirmIrreversible;

@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:ubaa_domain/ubaa_domain.dart';
-import 'infrastructure/preferences.dart';
+import '../infrastructure/preferences.dart';
 export 'package:ubaa_domain/ubaa_domain.dart' show AutoSigninSettings;
 
 /// 让应用在后台按时醒来。只有 Android 能做到：前台服务常驻、精确闹钟唤醒、

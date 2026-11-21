@@ -8,16 +8,14 @@ const _todoNoticeGroup = 'todo';
 const _maxScheduledNotices = 56;
 
 extension _UbaaAppHostReminders on _UbaaAppHostState {
-  UiNotificationControls? get _notificationControls =>
-      _notifications.isAvailable
-      ? UiNotificationControls(
-          settings: _notificationSettings,
-          onChanged: _setNotificationSettings,
-          note: Platform.isIOS
-              ? 'iOS 只能提前排好最近几天的提醒，隔几天打开一次应用即可续上'
-              : null,
-        )
-      : null;
+  UiNotificationControls? get _notificationControls {
+    if (!_notifications.isAvailable) return null;
+    return UiNotificationControls(
+      settings: _notificationSettings,
+      onChanged: _setNotificationSettings,
+      note: Platform.isIOS ? 'iOS 只能提前排好最近几天的提醒，隔几天打开一次应用即可续上' : null,
+    );
+  }
 
   Future<void> _loadNotificationSettings() async {
     var value = const ReminderNotificationSettings();
@@ -71,18 +69,16 @@ extension _UbaaAppHostReminders on _UbaaAppHostState {
       return;
     final settings = _notificationSettings;
     final home = _controller.homeState;
+    final schedule = (
+      _controller.scheduleWidgetRevision,
+      _controller.agendaProjectionEpoch,
+    );
+    final todos = Object.hashAll(home.todos.map((t) => (t.id, t.deadline)));
     final stamp = (
       _controller.scheduleWidgetOwner,
       settings,
-      settings.courseEnabled
-          ? (
-              _controller.scheduleWidgetRevision,
-              _controller.agendaProjectionEpoch,
-            )
-          : null,
-      settings.todoEnabled && home.projected
-          ? Object.hashAll(home.todos.map((t) => (t.id, t.deadline)))
-          : null,
+      settings.courseEnabled ? schedule : null,
+      settings.todoEnabled && home.projected ? todos : null,
       _reminderRound,
     );
     if (stamp == _reminderStamp) return;
@@ -110,9 +106,7 @@ extension _UbaaAppHostReminders on _UbaaAppHostState {
       }
       var courses = const <ScheduledNotification>[];
       if (settings.courseEnabled) {
-        final list = await _controller.readUpcomingCourses(
-          homeCampusTime(now),
-        );
+        final list = await _controller.readUpcomingCourses(homeCampusTime(now));
         if (!current()) return;
         courses = _courseNotices(list, settings.courseLeads, now);
       }
@@ -147,56 +141,76 @@ List<ScheduledNotification> _courseNotices(
   List<UpcomingCourse> courses,
   List<int> leads,
   DateTime now,
-) => [
-  for (final course in courses)
-    for (final lead in leads)
-      if (_campusInstant(course.start).subtract(Duration(minutes: lead))
-          case final at when at.isAfter(now))
+) {
+  final notices = <ScheduledNotification>[];
+  for (final course in courses) {
+    final start = _campusInstant(course.start);
+    final place = course.place == null ? '' : ' · ${course.place}';
+    for (final lead in leads) {
+      final at = start.subtract(Duration(minutes: lead));
+      if (!at.isAfter(now)) continue;
+      final label = reminderLeadLabel(lead);
+      notices.add(
         ScheduledNotification(
           id: _noticeId('course|${course.title}|${course.start}|$lead'),
           title: course.title,
-          body:
-              '${reminderLeadLabel(lead)}后上课 · ${_clock(course.start)}'
-              '${course.place == null ? '' : ' · ${course.place}'}',
+          body: '$label后上课 · ${_clock(course.start)}$place',
           at: at,
         ),
-];
+      );
+    }
+  }
+  return notices;
+}
 
 /// 签到在课程提醒里已经覆盖，这里只提醒有截止时间的待办。
 List<ScheduledNotification> _todoNotices(
   List<HomeTodo> todos,
   List<int> leads,
   DateTime now,
-) => [
-  for (final todo in todos)
-    if (todo.deadline case final deadline?
-        when todo.feature != FeatureId.signin)
-      for (final lead in leads)
-        if (_campusInstant(deadline).subtract(Duration(minutes: lead))
-            case final at when at.isAfter(now))
-          ScheduledNotification(
-            id: _noticeId('todo|${todo.id}|$deadline|$lead'),
-            title: todo.title,
-            body:
-                '还有 ${reminderLeadLabel(lead)}截止 · '
-                '${deadline.month}月${deadline.day}日 ${_clock(deadline)}'
-                '${todo.subtitle.trim().isEmpty ? '' : ' · ${todo.subtitle.trim()}'}',
-            at: at,
-          ),
-];
+) {
+  final notices = <ScheduledNotification>[];
+  for (final todo in todos) {
+    final deadline = todo.deadline;
+    if (deadline == null || todo.feature == FeatureId.signin) continue;
+    final due = _campusInstant(deadline);
+    final course = todo.subtitle.trim();
+    final dueText = '${deadline.month}月${deadline.day}日 ${_clock(deadline)}';
+    final extra = course.isEmpty ? '' : ' · $course';
+    for (final lead in leads) {
+      final at = due.subtract(Duration(minutes: lead));
+      if (!at.isAfter(now)) continue;
+      final label = reminderLeadLabel(lead);
+      notices.add(
+        ScheduledNotification(
+          id: _noticeId('todo|${todo.id}|$deadline|$lead'),
+          title: todo.title,
+          body: '还有 $label截止 · $dueText$extra',
+          at: at,
+        ),
+      );
+    }
+  }
+  return notices;
+}
 
 /// 校园墙上时间（东八区）换成绝对时刻，手机时区不是东八区也不会错。
-DateTime _campusInstant(DateTime wall) => DateTime.utc(
-  wall.year,
-  wall.month,
-  wall.day,
-  wall.hour,
-  wall.minute,
-  wall.second,
-).subtract(const Duration(hours: 8));
+DateTime _campusInstant(DateTime wall) {
+  final utc = DateTime.utc(
+    wall.year,
+    wall.month,
+    wall.day,
+    wall.hour,
+    wall.minute,
+    wall.second,
+  );
+  return utc.subtract(const Duration(hours: 8));
+}
 
-String _clock(DateTime time) =>
-    '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+String _clock(DateTime time) {
+  String two(int value) => value.toString().padLeft(2, '0');
+  return '${two(time.hour)}:${two(time.minute)}';
+}
 
 /// 同一节课同一档提醒的编号固定，重排时系统直接覆盖旧的那条。
 int _noticeId(String key) {

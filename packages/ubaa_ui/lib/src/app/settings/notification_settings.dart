@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ubaa_domain/ubaa_domain.dart';
-import '../shared/feedback.dart';
+import '../../shared/feedback.dart';
 
 /// 设置页“通知”分组需要的状态与操作，由宿主装配。
 ///
@@ -49,28 +49,28 @@ class NotificationSettings extends StatelessWidget {
     }
   }
 
+  void _update(BuildContext context, ReminderNotificationSettings value) =>
+      unawaited(_save(context, value));
+
   @override
   Widget build(BuildContext context) {
-    final muted = Theme.of(context).colorScheme.onSurfaceVariant;
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurfaceVariant;
     final enabled = controls.available;
+    final course = _value.courseLeads.map(reminderLeadLabel).join('、');
+    final todo = _value.todoLeads.map(reminderLeadLabel).join('、');
+    final courseText = _value.courseEnabled ? '上课前 $course 提醒' : '上课前发通知提醒';
+    final todoText = _value.todoEnabled ? '截止前 $todo 提醒' : '作业等待办截止前发通知提醒';
     return Column(
       children: [
         SwitchListTile(
           key: const ValueKey('settings-course-notification'),
           secondary: const Icon(Icons.class_outlined),
           title: const Text('课程提醒'),
-          subtitle: Text(
-            !enabled
-                ? '当前设备不支持系统通知'
-                : _value.courseEnabled
-                ? '上课前 ${_value.courseLeads.map(reminderLeadLabel).join('、')} 提醒'
-                : '上课前发通知提醒',
-          ),
+          subtitle: Text(enabled ? courseText : '当前设备不支持系统通知'),
           value: enabled && _value.courseEnabled,
           onChanged: enabled
-              ? (on) => unawaited(
-                  _save(context, _value.copyWith(courseEnabled: on)),
-                )
+              ? (on) => _update(context, _value.copyWith(courseEnabled: on))
               : null,
         ),
         if (enabled && _value.courseEnabled)
@@ -79,25 +79,17 @@ class NotificationSettings extends StatelessWidget {
             presets: ReminderNotificationSettings.coursePresets,
             selected: _value.courseLeads,
             onChanged: (leads) =>
-                unawaited(_save(context, _value.copyWith(courseLeads: leads))),
+                _update(context, _value.copyWith(courseLeads: leads)),
           ),
         const Divider(height: 1),
         SwitchListTile(
           key: const ValueKey('settings-todo-notification'),
           secondary: const Icon(Icons.task_alt_outlined),
           title: const Text('待办提醒'),
-          subtitle: Text(
-            !enabled
-                ? '当前设备不支持系统通知'
-                : _value.todoEnabled
-                ? '截止前 ${_value.todoLeads.map(reminderLeadLabel).join('、')} 提醒'
-                : '作业等待办截止前发通知提醒',
-          ),
+          subtitle: Text(enabled ? todoText : '当前设备不支持系统通知'),
           value: enabled && _value.todoEnabled,
           onChanged: enabled
-              ? (on) => unawaited(
-                  _save(context, _value.copyWith(todoEnabled: on)),
-                )
+              ? (on) => _update(context, _value.copyWith(todoEnabled: on))
               : null,
         ),
         if (enabled && _value.todoEnabled)
@@ -106,16 +98,14 @@ class NotificationSettings extends StatelessWidget {
             presets: ReminderNotificationSettings.todoPresets,
             selected: _value.todoLeads,
             onChanged: (leads) =>
-                unawaited(_save(context, _value.copyWith(todoLeads: leads))),
+                _update(context, _value.copyWith(todoLeads: leads)),
           ),
         if (controls.note case final note?)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
             child: Text(
               note,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: muted),
+              style: theme.textTheme.bodySmall?.copyWith(color: muted),
             ),
           ),
       ],
@@ -136,11 +126,7 @@ class _LeadPicker extends StatelessWidget {
 
   void _toggle(int lead, bool on) {
     if (!on && selected.length == 1) return;
-    onChanged(
-      on
-          ? [...selected, lead]
-          : selected.where((value) => value != lead).toList(),
-    );
+    onChanged([...selected.where((value) => value != lead), if (on) lead]);
   }
 
   Future<void> _addCustom(BuildContext context) async {
@@ -243,10 +229,7 @@ class _CustomLeadDialogState extends State<_CustomLeadDialog> {
           autofocus: true,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          decoration: InputDecoration(
-            labelText: '提前多久',
-            errorText: _error,
-          ),
+          decoration: InputDecoration(labelText: '提前多久', errorText: _error),
           onSubmitted: (_) => _submit(),
         ),
         const SizedBox(height: 16),

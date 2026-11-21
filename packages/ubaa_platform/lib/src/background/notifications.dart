@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:ubaa_domain/ubaa_domain.dart';
-import 'infrastructure/preferences.dart';
+import '../infrastructure/preferences.dart';
 export 'package:ubaa_domain/ubaa_domain.dart' show ReminderNotificationSettings;
 
 /// 交给系统定时弹出的一条本地通知，[at] 是绝对时刻。

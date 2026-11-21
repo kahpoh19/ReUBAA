@@ -174,8 +174,7 @@ extension _HomeSources on HomeCoordinator {
             current.status == FeatureLoadStatus.empty ||
             current.updatedAt != null);
     final auto =
-        complete &&
-        (courses.isEmpty || homeCoursesFinished(courses, now, now));
+        complete && (courses.isEmpty || homeCoursesFinished(courses, now, now));
     // 手动切换只管当天，过了零点回到自动判断。
     final manual = _manualDate == date ? _manualTomorrow : null;
     final tomorrow = _readDays && (manual ?? auto);

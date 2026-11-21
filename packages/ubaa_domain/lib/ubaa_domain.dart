@@ -15,8 +15,8 @@ export 'src/feature/health_cloud.dart';
 
 export 'src/feature/schedule/home.dart';
 export 'src/feature/home_state.dart';
-export 'src/feature/notifications.dart';
-export 'src/feature/course_assist.dart';
+export 'src/feature/reminders/notifications.dart';
+export 'src/feature/reminders/course_assist.dart';
 
 export 'src/agenda/models.dart';
 export 'src/agenda/bykc_conflicts.dart';
