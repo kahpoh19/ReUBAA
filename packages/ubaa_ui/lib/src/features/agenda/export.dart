@@ -15,31 +15,47 @@ extension AgendaFileExport on AgendaViewState {
       builder: (_, child) => bound(child!),
     );
     if (!current(token) || selected == null) return;
+    var content = AgendaExportContent.all;
     final include = await showUiSheet<bool>(
       context,
       builder: (sheet) => bound(
-        UiSheetBody(
-          title: '导出日历',
-          subtitle:
-              '${agendaDate(selected.start)} 至 ${agendaDate(selected.end)}',
-          children: [
-            UiInfoRow(
-              icon: Icons.info_outline,
-              text: widget.term.trim().isEmpty
-                  ? '还没有学期信息，只导出所选日期内你添加的日程。'
-                  : '导出所选日期内的日程。',
+        StatefulBuilder(
+          builder: (context, setSheet) => UiSheetBody(
+            title: '导出日历',
+            subtitle:
+                '${agendaDate(selected.start)} 至 ${agendaDate(selected.end)}',
+            children: [
+              UiInfoRow(
+                icon: Icons.info_outline,
+                text: widget.term.trim().isEmpty
+                    ? '还没有学期信息，只导出所选日期内你添加的日程。'
+                    : '导出所选日期内的日程。课程是学校课表，待办包括作业、考试等和你添加的日程。',
+              ),
+              const SizedBox(height: 12),
+              // 选导出哪些，默认全部。
+              SegmentedButton<AgendaExportContent>(
+                key: const ValueKey('agenda-export-content'),
+                showSelectedIcon: false,
+                segments: [
+                  for (final value in AgendaExportContent.values)
+                    ButtonSegment(value: value, label: Text(value.label)),
+                ],
+                selected: {content},
+                onSelectionChanged: (value) =>
+                    setSheet(() => content = value.single),
+              ),
+            ],
+            primaryAction: FilledButton(
+              onPressed: () => Navigator.pop(sheet, false),
+              child: const Text('仅未完成事项'),
             ),
-          ],
-          primaryAction: FilledButton(
-            onPressed: () => Navigator.pop(sheet, false),
-            child: const Text('仅未完成事项'),
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(sheet, true),
+                child: const Text('包含已完成事项'),
+              ),
+            ],
           ),
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.pop(sheet, true),
-              child: const Text('包含已完成事项'),
-            ),
-          ],
         ),
       ),
     );
@@ -54,6 +70,13 @@ extension AgendaFileExport on AgendaViewState {
         includeCompleted: include,
       );
       if (!current(token)) return;
+      // Core 导出全部，这里按选择只留课程或待办。
+      final (ics, count) = filterAgendaIcs(value.ics, content);
+      final suffix = switch (content) {
+        AgendaExportContent.all => '',
+        AgendaExportContent.courses => '-课程',
+        AgendaExportContent.todos => '-待办',
+      };
       final saver = widget.onSaveFile;
       if (saver == null) {
         UbaaFeedback.show(
@@ -64,14 +87,18 @@ extension AgendaFileExport on AgendaViewState {
         return;
       }
       final message = await saver(
-        value,
-        'ReUBAA-${agendaDate(selected.start)}-${agendaDate(selected.end)}.ics',
+        AgendaExportResult(
+          ics: ics,
+          exportedCount: count,
+          skippedUnknownTimeCount: value.skippedUnknownTimeCount,
+        ),
+        'ReUBAA-${agendaDate(selected.start)}-${agendaDate(selected.end)}$suffix.ics',
         () => current(token),
       );
       if (current(token) && message != null)
         UbaaFeedback.show(
           context,
-          '$message · ${value.exportedCount}项${value.skippedUnknownTimeCount == 0 ? '' : '，${value.skippedUnknownTimeCount} 项时间未定，未导出'}',
+          '$message · $count项${value.skippedUnknownTimeCount == 0 ? '' : '，${value.skippedUnknownTimeCount} 项时间未定，未导出'}',
         );
     } on Object {
       if (current(token))
