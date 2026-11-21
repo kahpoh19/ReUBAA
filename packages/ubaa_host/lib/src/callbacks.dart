@@ -225,6 +225,7 @@ extension _UbaaAppHostCallbacks on _UbaaAppHostState {
       onRefreshHome: _controller.refreshHomePage,
       onRetryHomeSource: _controller.retryHomeSource,
       onHomeReminderChanged: _controller.setHomeReminder,
+      onToggleHomeScheduleDay: _controller.toggleHomeScheduleDay,
       agendaEpoch: _controller.agendaProjectionEpoch,
       onLoadYgdkReminder: localOwner.accountKey.isEmpty
           ? null

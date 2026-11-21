@@ -38,6 +38,9 @@ mixin ControllerHomePresentation on ControllerState {
   Future<void> retryHomeSource(FeatureId feature) =>
       internalUserSchoolAction(() => _home.retry(feature));
   void setHomeReminder(YgdkReminderSettings? value) => _home.setReminder(value);
+
+  /// 首页课表手动切到明日或切回今日。
+  void toggleHomeScheduleDay() => _home.toggleScheduleDay();
   void setHomeVisible(bool value) {
     if (_homeVisible == value) return;
     _homeVisible = value;

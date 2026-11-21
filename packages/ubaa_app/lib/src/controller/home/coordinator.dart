@@ -50,6 +50,10 @@ final class HomeCoordinator {
   int _epoch = -1, _generation = 0, _agenda = -1;
   bool _active = false, _online = false, _blocked = false, _disposed = false;
   bool _readDays = false;
+
+  /// 用户手动选的今天/明天，只在 [_manualDate] 这一天有效。
+  bool? _manualTomorrow;
+  String? _manualDate;
   bool _forceDayReads = false;
   bool _scheduled = false, _projecting = false, _dirtyProjection = false;
   bool _projected = false;
@@ -92,6 +96,7 @@ final class HomeCoordinator {
       _owner = owner;
       _contentScope = nextContentScope;
       _observedToday = homeDateKey(homeCampusTime(clock()));
+      _manualTomorrow = null;
       _cachedWeekTask = null;
       _cachedDayTasks.clear();
       _refresh = null;
@@ -183,6 +188,17 @@ final class HomeCoordinator {
       return;
     _reminder = next;
     _dirtyProjection = true;
+    _schedule();
+  }
+
+  /// 首页课表在今日和明日之间切换；正在看明日就切回今日，反之亦然。
+  void toggleScheduleDay() {
+    if (_disposed || !_readDays) return;
+    _now = clock();
+    final current = _scheduleState();
+    _manualDate = homeDateKey(homeCampusTime(_now));
+    _manualTomorrow = !current.tomorrow;
+    _publish();
     _schedule();
   }
 

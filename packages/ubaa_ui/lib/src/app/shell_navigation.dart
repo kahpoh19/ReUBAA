@@ -164,6 +164,7 @@ extension UbaaShellNavigation on _UbaaMainShellState {
         _changeNavigation(() => _agendaTodoRequest++);
         _selectTab(UiDestination.agenda.index);
       },
+      onToggleScheduleDay: widget.onToggleHomeScheduleDay,
       writeReadbackNotice:
           widget.writeReadbacks.isEmpty && widget.writeReadbackError == null
           ? null

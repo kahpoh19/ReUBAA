@@ -37,9 +37,13 @@ final class HomeScheduleState {
     required this.snapshot,
     this.tomorrow = false,
     this.remote = false,
+    this.switchable = false,
   });
   final String date;
   final FeatureSnapshot snapshot;
   final bool tomorrow, remote;
+
+  /// 能否在今日和明日课表之间手动切换；首页不读取单日课表时为 false。
+  final bool switchable;
   DateTime get day => homeParseDate(date)!;
 }

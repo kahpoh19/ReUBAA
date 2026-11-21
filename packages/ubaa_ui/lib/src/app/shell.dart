@@ -119,6 +119,7 @@ class UbaaMainShell extends StatefulWidget {
     this.onRefreshHome,
     this.onRetryHomeSource,
     this.onHomeReminderChanged,
+    this.onToggleHomeScheduleDay,
     this.onHomeVisibilityChanged,
     this.agendaEpoch = 0,
     this.agendaSchoolRoute,
@@ -172,6 +173,7 @@ class UbaaMainShell extends StatefulWidget {
   final Future<void> Function()? onRefreshHome;
   final Future<void> Function(FeatureId)? onRetryHomeSource;
   final ValueChanged<YgdkReminderSettings?>? onHomeReminderChanged;
+  final VoidCallback? onToggleHomeScheduleDay;
   final int agendaEpoch;
   final ConnectionMode? agendaSchoolRoute;
   final AgendaAccess agenda;

@@ -173,10 +173,12 @@ extension _HomeSources on HomeCoordinator {
         (current.status == FeatureLoadStatus.success ||
             current.status == FeatureLoadStatus.empty ||
             current.updatedAt != null);
-    final tomorrow =
-        _readDays &&
+    final auto =
         complete &&
         (courses.isEmpty || homeCoursesFinished(courses, now, now));
+    // 手动切换只管当天，过了零点回到自动判断。
+    final manual = _manualDate == date ? _manualTomorrow : null;
+    final tomorrow = _readDays && (manual ?? auto);
     final target = tomorrow ? DateTime(now.year, now.month, now.day + 1) : now;
     final key = homeDateKey(target), remote = tomorrow || !matches;
     final snapshot = remote
@@ -186,6 +188,7 @@ extension _HomeSources on HomeCoordinator {
       date: key,
       tomorrow: tomorrow,
       remote: remote,
+      switchable: _readDays,
       snapshot: _dayTasks.containsKey(key)
           ? snapshot.copyWith(status: FeatureLoadStatus.loading)
           : snapshot,

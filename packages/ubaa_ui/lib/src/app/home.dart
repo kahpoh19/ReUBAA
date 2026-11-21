@@ -35,6 +35,7 @@ class HomeView extends StatefulWidget {
     this.appNotices,
     this.homeClock,
     this.onViewAllTodos,
+    this.onToggleScheduleDay,
     this.recentFeatures = const [],
     this.onPullRefresh,
   });
@@ -50,6 +51,9 @@ class HomeView extends StatefulWidget {
   final GradeScoreNotice? gradeScoreNotice;
   final ConnectionMode? gradeCheckRoute;
   final VoidCallback? onOpenGradeNotice, onDismissGradeNotice, onViewAllTodos;
+
+  /// 今日课表和明日课表之间手动切换。
+  final VoidCallback? onToggleScheduleDay;
   final Widget? writeReadbackNotice;
 
   /// 应用服务的更新与公告横幅，排在首页最前。
@@ -181,6 +185,7 @@ class HomeViewState extends State<HomeView> {
       now: campusNow,
       onRetry: () => widget.onRetryFeature(FeatureId.schedule),
       onOpenSchedule: () => widget.onFeatureTap(FeatureId.schedule),
+      onToggleDay: widget.onToggleScheduleDay,
     );
     // 最近使用不足四个时用常用功能补齐，入口位置保持稳定。
     final quick = <FeatureId>{

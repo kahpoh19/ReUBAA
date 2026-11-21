@@ -17,6 +17,7 @@ class HomeScheduleSection extends StatelessWidget {
     required this.onOpenSchedule,
     this.weekResult,
     this.onRetry,
+    this.onToggleDay,
     this.trailing,
   });
   final HomeScheduleState state;
@@ -24,6 +25,9 @@ class HomeScheduleSection extends StatelessWidget {
   final FeatureResult? weekResult;
   final VoidCallback onOpenSchedule;
   final VoidCallback? onRetry;
+
+  /// 今日、明日课表互相切换；为 null 或不能切换时不显示按钮。
+  final VoidCallback? onToggleDay;
   final Widget? trailing;
   @override
   Widget build(BuildContext context) {
@@ -58,7 +62,20 @@ class HomeScheduleSection extends StatelessWidget {
           onTitleTap: onOpenSchedule,
           subtitle:
               '${day.month}月${day.day}日 · ${uiWeekdays[day.weekday - 1]}${week == null ? '' : ' · 第${week.number}周'}',
-          trailing: trailing,
+          trailing:
+              trailing ??
+              (state.switchable && onToggleDay != null
+                  ? TextButton.icon(
+                      key: const ValueKey('home-schedule-day-toggle'),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: const Size(0, 36),
+                      ),
+                      onPressed: onToggleDay,
+                      icon: const Icon(Icons.swap_horiz, size: 18),
+                      label: Text(tomorrow ? '看今日' : '看明日'),
+                    )
+                  : null),
         ),
         if (courses.isNotEmpty)
           for (final detail in courses)
