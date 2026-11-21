@@ -3,10 +3,10 @@ final class AutoSigninSettings {
   const AutoSigninSettings({this.unlocked = false, this.enabled = false});
 
   /// 课前多久开始尝试。
-  static const lead = Duration(minutes: 10);
+  static const lead = Duration(minutes: 5);
 
   /// 上课后多久还没签上就放弃。
-  static const grace = Duration(minutes: 10);
+  static const grace = Duration(minutes: 30);
 
   /// 两次尝试的间隔。
   static const interval = Duration(seconds: 30);

@@ -23,8 +23,8 @@ object KeepAlive {
     private const val KEY_ENABLED = "enabled"
     private const val KEY_WAKES = "wakes"
 
-    // 一节课的签到窗口是 20 分钟，唤醒锁多留 5 分钟，Dart 做完会提前释放。
-    private const val HOLD_MS = 25 * 60 * 1000L
+    // 一节课的签到窗口是课前 5 分钟到课后 30 分钟，唤醒锁多留 5 分钟，Dart 做完会提前释放。
+    private const val HOLD_MS = 40 * 60 * 1000L
     private var wakeLock: PowerManager.WakeLock? = null
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
