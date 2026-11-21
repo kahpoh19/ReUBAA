@@ -1,0 +1,133 @@
+name: ReUBAA 安卓安装包
+# fork 自用：只打 Android Release 包，用仓库 Secrets 里自己的证书签名。
+# 原版的 Release 流程限定在 BUAASubnet/UBAA，fork 里跑不起来，所以单独写一个。
+on:
+  workflow_dispatch:
+    inputs:
+      abi:
+        description: 安装包架构，一般手机选 arm64-v8a
+        type: choice
+        options:
+          - arm64-v8a
+          - armeabi-v7a
+          - x86_64
+        default: arm64-v8a
+permissions:
+  contents: read
+concurrency:
+  group: android-release-${{ github.ref }}-${{ inputs.abi }}
+  cancel-in-progress: true
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      ANDROID_ABI: ${{ inputs.abi }}
+      # fork 不连原版的应用服务（更新检查、公告、统计）。
+      UBAA_APP_SERVICE_URL: ''
+      UBAA_DISTRIBUTION_CHANNEL: github
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: 检查签名 Secrets
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          missing=()
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_STORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            [[ -n "${!name}" ]] || missing+=("$name")
+          done
+          if (( ${#missing[@]} )); then
+            printf '::error::仓库 Settings → Secrets and variables → Actions 里缺少：%s\n' "${missing[*]}"
+            exit 1
+          fi
+      - name: 读取版本号与构建目标
+        shell: bash
+        run: |
+          python3 - >> "$GITHUB_ENV" <<'PY'
+          import tomllib
+          with open('version.toml', 'rb') as f:
+              v = tomllib.load(f)
+          print(f"RELEASE_VERSION={v['version']}")
+          print(f"RELEASE_BUILD={v['build_number']}")
+          PY
+          case "$ANDROID_ABI" in
+            arm64-v8a) target=android-arm64 ;;
+            armeabi-v7a) target=android-arm ;;
+            x86_64) target=android-x64 ;;
+            *) printf '::error::不支持的架构：%s\n' "$ANDROID_ABI"; exit 1 ;;
+          esac
+          echo "ANDROID_TARGET=$target" >> "$GITHUB_ENV"
+      - uses: ./.github/actions/toolchain
+      - name: 准备固定 Flutter
+        uses: ./.github/actions/flutter
+      - name: 安装 Android 固定组件
+        shell: bash
+        run: |
+          sdkmanager_bin="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          source scripts/tools/versions.env
+          # 仅忽略 yes 在 sdkmanager 正常退出后的 SIGPIPE，保留 sdkmanager 的错误。
+          set +o pipefail
+          yes | "$sdkmanager_bin" --licenses >/dev/null
+          set -o pipefail
+          "$sdkmanager_bin" \
+            "platforms;android-$ANDROID_API" \
+            "build-tools;$ANDROID_BUILD_TOOLS" \
+            "ndk;$ANDROID_NDK" \
+            "cmake;$ANDROID_CMAKE"
+      - name: 缓存 Gradle Wrapper 发行包
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('apps/ubaa_flutter/android/gradle/wrapper/gradle-wrapper.properties') }}
+      - name: 准备 Gradle Wrapper
+        shell: bash
+        working-directory: apps/ubaa_flutter/android
+        run: |
+          just flutter precache --android
+          wrapper="$UBAA_FLUTTER_HOME/bin/cache/artifacts/gradle_wrapper"
+          install -m 0755 "$wrapper/gradlew" gradlew
+          install -m 0644 "$wrapper/gradle/wrapper/gradle-wrapper.jar" gradle/wrapper/gradle-wrapper.jar
+          for attempt in 1 2 3; do
+            if ./gradlew --version; then
+              exit 0
+            else
+              status=$?
+            fi
+            if [[ "$attempt" == 3 ]]; then
+              exit "$status"
+            fi
+            printf 'Gradle 发行包准备失败，5 秒后重试（%s/3）\n' "$attempt" >&2
+            sleep 5
+          done
+      - name: 还原 Android 签名文件
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: python3 scripts/release/platforms/materials.py android
+      - name: 构建并检查 APK
+        env:
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: bash scripts/release/platforms/android.sh
+      - name: 安装包改名为 ReUBAA
+        shell: bash
+        run: |
+          cd .ubaa_local/release/public
+          mv "UBAA-${RELEASE_VERSION}-android-${ANDROID_ABI}.apk" "ReUBAA-${RELEASE_VERSION}-android-${ANDROID_ABI}.apk"
+          sha256sum ./*.apk
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ReUBAA-${{ env.RELEASE_VERSION }}-android-${{ inputs.abi }}
+          path: .ubaa_local/release/public/*.apk
+          if-no-files-found: error
+          retention-days: 30
+      - name: 清理签名材料
+        if: ${{ always() }}
+        shell: bash
+        run: rm -rf .ubaa_local/release/signing
