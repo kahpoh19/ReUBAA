@@ -70,8 +70,18 @@ extension AgendaFileExport on AgendaViewState {
         includeCompleted: include,
       );
       if (!current(token)) return;
-      // Core 导出全部，这里按选择只留课程或待办。
-      final (ics, count) = filterAgendaIcs(value.ics, content);
+      // Core 导出全部，选了只要课程或待办时再过滤；全部就原样交出去。
+      final AgendaExportResult result;
+      if (content == AgendaExportContent.all) {
+        result = value;
+      } else {
+        final (ics, count) = filterAgendaIcs(value.ics, content);
+        result = AgendaExportResult(
+          ics: ics,
+          exportedCount: count,
+          skippedUnknownTimeCount: value.skippedUnknownTimeCount,
+        );
+      }
       final suffix = switch (content) {
         AgendaExportContent.all => '',
         AgendaExportContent.courses => '-课程',
@@ -87,18 +97,14 @@ extension AgendaFileExport on AgendaViewState {
         return;
       }
       final message = await saver(
-        AgendaExportResult(
-          ics: ics,
-          exportedCount: count,
-          skippedUnknownTimeCount: value.skippedUnknownTimeCount,
-        ),
+        result,
         'ReUBAA-${agendaDate(selected.start)}-${agendaDate(selected.end)}$suffix.ics',
         () => current(token),
       );
       if (current(token) && message != null)
         UbaaFeedback.show(
           context,
-          '$message · $count项${value.skippedUnknownTimeCount == 0 ? '' : '，${value.skippedUnknownTimeCount} 项时间未定，未导出'}',
+          '$message · ${result.exportedCount}项${value.skippedUnknownTimeCount == 0 ? '' : '，${value.skippedUnknownTimeCount} 项时间未定，未导出'}',
         );
     } on Object {
       if (current(token))

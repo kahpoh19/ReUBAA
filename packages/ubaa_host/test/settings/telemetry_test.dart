@@ -113,9 +113,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.settings_outlined));
     await tester.pumpAndSettle();
-    final tile = tester.widget<SwitchListTile>(
-      find.byKey(const ValueKey('settings-product-telemetry')),
-    );
+    final tile = await _telemetryTile(tester);
     expect(tile.value, isTrue);
     await tester.ensureVisible(
       find.byKey(const ValueKey('settings-product-telemetry')),
@@ -152,9 +150,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byIcon(Icons.settings_outlined));
       await tester.pumpAndSettle();
-      final tile = tester.widget<SwitchListTile>(
-        find.byKey(const ValueKey('settings-product-telemetry')),
-      );
+      final tile = await _telemetryTile(tester);
       expect(tile.value, isFalse);
       expect(backend.consent, AppServiceConsent.basic);
       if (startup == 0) await tester.pumpWidget(const SizedBox.shrink());
@@ -184,9 +180,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byIcon(Icons.settings_outlined));
       await tester.pumpAndSettle();
-      final tile = tester.widget<SwitchListTile>(
-        find.byKey(const ValueKey('settings-product-telemetry')),
-      );
+      final tile = await _telemetryTile(tester);
       expect(tile.value, isFalse);
       expect((backend.consent, backend.telemetryEnabled), (consent, false));
       await tester.pumpWidget(const SizedBox.shrink());
@@ -389,4 +383,18 @@ class _ConsentBackend extends _Backend implements AppServiceBackend {
   Future<void> uploadAppService({required bool force}) async {}
   @override
   Future<void> recordAppService(TelemetryRecord record) async {}
+}
+
+/// 设置页加了通知等分组后统计开关不在首屏，懒加载列表还没建它，先滚过去再取。
+Future<SwitchListTile> _telemetryTile(WidgetTester tester) async {
+  final tile = find.byKey(const ValueKey('settings-product-telemetry'));
+  final list = find
+      .ancestor(of: find.text('个性化'), matching: find.byType(Scrollable))
+      .first;
+  await tester.scrollUntilVisible(
+    tile,
+    300,
+    scrollable: find.byWidget(tester.widget(list)),
+  );
+  return tester.widget<SwitchListTile>(tile);
 }
