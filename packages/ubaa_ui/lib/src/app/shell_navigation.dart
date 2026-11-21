@@ -292,6 +292,7 @@ extension UbaaShellNavigation on _UbaaMainShellState {
     activeRoutes: widget.activeRoutes,
     onReadDiagnostics: widget.onReadDiagnostics,
     appearance: widget.appearance,
+    notifications: widget.notifications,
   );
   Widget _buildRailContent(BuildContext context) => uiShellRail(
     context,

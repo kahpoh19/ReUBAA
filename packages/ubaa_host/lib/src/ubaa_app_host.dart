@@ -21,6 +21,7 @@ part 'startup.dart';
 part 'session.dart';
 part 'local_data.dart';
 part 'schedule_widgets.dart';
+part 'reminders.dart';
 
 const _expectedBridgeHello = 'UBAA FRB 2.13.0 ready';
 
@@ -172,6 +173,7 @@ class UbaaAppHost extends StatefulWidget {
     this.onReadSchedulerTrace,
     this.onGradeCheckComplete,
     this.scheduleWidgetGateway,
+    this.notificationGateway,
     this.urlOpener,
     super.key,
   });
@@ -214,6 +216,9 @@ class UbaaAppHost extends StatefulWidget {
   final void Function(ReadSchedulerTrace trace)? onReadSchedulerTrace;
   final void Function(bool persisted)? onGradeCheckComplete;
   final ScheduleWidgetGateway? scheduleWidgetGateway;
+
+  /// 课程与待办提醒用的系统通知；为空时生产宿主在 Android/iOS 上走原生通道。
+  final NotificationGateway? notificationGateway;
 
   /// 打开更新和公告链接；测试可以注入，默认只接受 HTTPS 并交给系统浏览器。
   final Future<bool> Function(Uri url)? urlOpener;

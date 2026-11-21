@@ -217,6 +217,7 @@ extension _UbaaAppHostCallbacks on _UbaaAppHostState {
         accent: _accent,
         onAccentChanged: _setAccent,
       ),
+      notifications: _notificationControls,
       user: _controller.displayUser,
       snapshots: _controller.snapshots,
       homeState: _controller.homeState,

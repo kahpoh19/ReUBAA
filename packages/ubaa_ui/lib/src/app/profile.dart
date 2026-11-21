@@ -6,6 +6,8 @@ import 'package:ubaa_ui/src/theme.dart';
 import '../common/section.dart';
 import 'app_service/settings.dart' show AppServiceControls, AppServiceSettings;
 import 'cache_settings.dart' show CacheSettings;
+import 'notification_settings.dart'
+    show NotificationSettings, UiNotificationControls;
 import 'profile_details.dart' show ProfileIdentityCard;
 import '../common/error_card.dart' show uiShowDiagnosticsDialog;
 import '../shared/dialogs/confirmation.dart' show uiConfirmIrreversible;
@@ -28,6 +30,7 @@ class ProfileView extends StatelessWidget {
     this.onReadCacheUsage,
     this.onClearBusinessCache,
     this.appearance = const UiAppearanceSettings(),
+    this.notifications,
   });
 
   final bool settingsOnly;
@@ -37,6 +40,9 @@ class ProfileView extends StatelessWidget {
   final Future<CacheUsageSummary> Function(String)? onReadCacheUsage;
   final Future<CacheClearOutcome> Function(String)? onClearBusinessCache;
   final UiAppearanceSettings appearance;
+
+  /// 宿主不支持提醒（如测试或未接入通知的平台）时为 null，不显示“通知”分组。
+  final UiNotificationControls? notifications;
   final UserSummary? user;
   final RoutePolicy routePolicy;
 
@@ -110,6 +116,11 @@ class ProfileView extends StatelessWidget {
             ],
           ),
         ),
+        if (notifications case final controls?) ...[
+          const SizedBox(height: 16),
+          const UiSectionTitle('通知'),
+          Card(child: NotificationSettings(controls: controls)),
+        ],
         const SizedBox(height: 16),
         const UiSectionTitle('连接模式'),
         Card(

@@ -38,6 +38,7 @@ import 'account/me.dart' show MeView;
 import 'profile.dart' show ProfileView;
 import 'app_service/notices.dart' show AppServiceNotices;
 import 'app_service/settings.dart' show AppServiceControls;
+import 'notification_settings.dart' show UiNotificationControls;
 import 'write_readback_notice.dart' show WriteReadbackNotice;
 import '../common/feature_detail.dart' show FeatureDetailView;
 import '../common/read_navigator.dart'
@@ -87,6 +88,7 @@ class UbaaMainShell extends StatefulWidget {
     this.onReconnect,
     this.onCompleteLogin,
     this.appearance = const UiAppearanceSettings(),
+    this.notifications,
     this.readCacheEpoch = 0,
     this.businessCacheEpoch = 0,
     this.localPreferencesRevision = 0,
@@ -219,6 +221,9 @@ class UbaaMainShell extends StatefulWidget {
   final VoidCallback? onReconnect;
   final ValueChanged<BuildContext>? onCompleteLogin;
   final UiAppearanceSettings appearance;
+
+  /// 设置页的课程与待办提醒；平台不支持通知时为 null。
+  final UiNotificationControls? notifications;
 
   final int readCacheEpoch;
   final int businessCacheEpoch;

@@ -6,6 +6,7 @@ import cn.edu.ubaa.ubaa_flutter.platform.AppearanceChannel
 import cn.edu.ubaa.ubaa_flutter.platform.AgendaFileChannel
 import cn.edu.ubaa.ubaa_flutter.platform.DefaultNetworkChannel
 import cn.edu.ubaa.ubaa_flutter.platform.PrivatePaths
+import cn.edu.ubaa.ubaa_flutter.reminders.NotificationsChannel
 import cn.edu.ubaa.ubaa_flutter.widgets.WidgetChannel
 
 class MainActivity : FlutterActivity() {
@@ -15,6 +16,7 @@ class MainActivity : FlutterActivity() {
     private var scheduleWidgets: WidgetChannel? = null
     private var appearance: AppearanceChannel? = null
     private var agendaFiles: AgendaFileChannel? = null
+    private var notifications: NotificationsChannel? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         System.loadLibrary("ubaa_flutter_bridge")
@@ -25,6 +27,7 @@ class MainActivity : FlutterActivity() {
         scheduleWidgets = WidgetChannel(this, flutterEngine.dartExecutor.binaryMessenger)
         appearance = AppearanceChannel(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
         agendaFiles = AgendaFileChannel(this, flutterEngine.dartExecutor.binaryMessenger)
+        notifications = NotificationsChannel(applicationContext, flutterEngine.dartExecutor.binaryMessenger) { this }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
@@ -32,7 +35,14 @@ class MainActivity : FlutterActivity() {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        if (notifications?.onPermissionResult(requestCode) == true) return
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
     override fun onDestroy() {
+        notifications?.dispose()
+        notifications = null
         network?.dispose()
         network = null
         agendaFiles?.dispose()

@@ -22,6 +22,25 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
     if (mounted) setState(update);
   }
 
+  void _refreshHost(VoidCallback update) {
+    if (mounted) setState(update);
+  }
+
+  late final NotificationGateway _notifications =
+      widget.notificationGateway ??
+      (widget.backend == null && widget.backendFactory == null
+          ? ChannelNotificationGateway()
+          : const UnavailableNotificationGateway());
+  late final _notificationStore = ReminderNotificationStore(
+    values: _preferences,
+  );
+  ReminderNotificationSettings _notificationSettings =
+      const ReminderNotificationSettings();
+  bool _notificationSettingsLoaded = false;
+  Object? _reminderStamp;
+  Timer? _reminderDelay, _reminderTimer;
+  int _reminderGeneration = 0, _reminderRound = 0;
+
   final _messengerKey = GlobalKey<ScaffoldMessengerState>();
   final _navigatorKey = GlobalKey<NavigatorState>();
   DialogRoute<void>? _captchaDialogRoute;
@@ -316,6 +335,15 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
       _scheduleWidgetPublisher = ScheduleWidgetPublisher(widgetGateway);
       _controller.addListener(_syncScheduleWidgets);
     }
+    if (_notifications.isAvailable) {
+      _controller.addListener(_syncReminders);
+      unawaited(_loadNotificationSettings());
+      // 提醒只排最近几天，每小时滚动一次时间窗。
+      _reminderTimer = Timer.periodic(const Duration(hours: 1), (_) {
+        _reminderRound++;
+        _syncReminders();
+      });
+    }
     _networkChanges =
         widget.networkChanges ??
         (widget.backend == null && widget.backendFactory == null
@@ -343,6 +371,8 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
     _disposed = true;
     _appServiceTimer?.cancel();
     _updateReminderTimer?.cancel();
+    _reminderDelay?.cancel();
+    _reminderTimer?.cancel();
     _crashHandlers?.dispose();
     _stopNetworkChanges();
     WidgetsBinding.instance.removeObserver(this);
@@ -358,6 +388,7 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
     _controller.removeListener(_syncAppServicePopup);
     unawaited(_updatePromptSubscription?.cancel());
     _controller.removeListener(_syncScheduleWidgets);
+    _controller.removeListener(_syncReminders);
     _scheduleWidgetPublisher?.dispose();
     _gradeWatch.dispose();
     _controller.dispose();

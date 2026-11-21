@@ -15,6 +15,8 @@ import 'package:ubaa_app/src/contracts/query.dart' show SigninReadbackBackend;
 import 'package:ubaa_app/src/contracts/signin/qr.dart';
 import 'package:ubaa_app/src/controller/read_scheduler.dart';
 import 'package:ubaa_app/src/contracts/lifecycle.dart';
+import 'package:ubaa_app/src/presentation/upcoming_courses.dart'
+    show UpcomingCourse;
 import 'package:ubaa_app/src/contracts/recovery.dart' show RecoveryTarget;
 import 'cache/home.dart' show ControllerOfflineCache;
 import 'cache/management.dart' show ControllerCacheManagement;
@@ -525,6 +527,12 @@ extension ScheduleWidgetCache on AppController {
   Future<ScheduleWidgetSnapshot> readScheduleWidgets(
     bool Function() publisherCurrent,
   ) => internalReadScheduleWidgets(publisherCurrent);
+
+  /// [from] 是校园日期，返回这天起 [days] 天里本机缓存到的课。
+  Future<List<UpcomingCourse>> readUpcomingCourses(
+    DateTime from, {
+    int days = 7,
+  }) => internalReadUpcomingCourses(from, days);
 }
 
 extension AppControllerLocalData on AppController {

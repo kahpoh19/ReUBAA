@@ -5,6 +5,7 @@ import 'package:ubaa_domain/ubaa_domain.dart';
 import 'package:ubaa_app/src/contracts/backend.dart';
 import 'package:ubaa_app/src/contracts/offline.dart';
 import 'package:ubaa_app/src/presentation/schedule_widget.dart';
+import 'package:ubaa_app/src/presentation/upcoming_courses.dart';
 import '../../state/state.dart' show ControllerState;
 import '../../state/types.dart' show AppPhase;
 
@@ -46,6 +47,33 @@ mixin ControllerScheduleWidgets on ControllerState {
       policy: RoutePolicy.auto,
       isCurrent: () =>
           publisherCurrent() &&
+          !internalDisposed &&
+          epoch == internalLifecycleEpoch &&
+          identical(backend, internalBackend) &&
+          owner == internalScheduleWidgetOwner &&
+          cacheEpoch == internalBusinessCacheEpoch,
+    );
+  }
+
+  /// 提醒和课前签到用的近几天课程，只读本机缓存。
+  @internal
+  Future<List<UpcomingCourse>> internalReadUpcomingCourses(
+    DateTime from,
+    int days,
+  ) async {
+    final owner = internalScheduleWidgetOwner,
+        epoch = internalLifecycleEpoch,
+        backend = internalBackend;
+    final cacheEpoch = internalBusinessCacheEpoch;
+    if (owner == null || backend is! OfflineQueryBackend) return const [];
+    await internalOfflineOpenFuture;
+    return readUpcomingCourses(
+      backend: backend as OfflineQueryBackend,
+      owner: owner,
+      policy: RoutePolicy.auto,
+      from: from,
+      days: days,
+      isCurrent: () =>
           !internalDisposed &&
           epoch == internalLifecycleEpoch &&
           identical(backend, internalBackend) &&
