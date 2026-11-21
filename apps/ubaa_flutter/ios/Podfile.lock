@@ -1,6 +1,6 @@
 PODS:
   - Flutter (1.0.0)
-  - ubaa_bindings (2.0.3):
+  - ubaa_bindings (1.0.0):
     - Flutter
 
 DEPENDENCIES:
