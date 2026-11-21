@@ -103,6 +103,43 @@ class ProfileView extends StatelessWidget {
     },
   );
 
+  /// 界面风格：Material 是默认样子，Miuix 仿 HyperOS。
+  Widget _styleTile() => LayoutBuilder(
+    builder: (context, constraints) {
+      final picker = SegmentedButton<UbaaUiStyle>(
+        key: const ValueKey('ui-style'),
+        showSelectedIcon: false,
+        segments: [
+          for (final style in UbaaUiStyle.values)
+            ButtonSegment(value: style, label: Text(style.label)),
+        ],
+        selected: {appearance.style},
+        onSelectionChanged: switch (appearance.onStyleChanged) {
+          null => null,
+          final changed => (value) => changed(value.single),
+        },
+      );
+      final inline =
+          constraints.maxWidth >= MediaQuery.textScalerOf(context).scale(600);
+      return ListTile(
+        leading: const Icon(Icons.style_outlined),
+        title: const Text('界面风格'),
+        trailing: inline
+            ? SizedBox(
+                width: MediaQuery.textScalerOf(context).scale(220),
+                child: picker,
+              )
+            : null,
+        subtitle: inline
+            ? null
+            : Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: SizedBox(width: double.infinity, child: picker),
+              ),
+      );
+    },
+  );
+
   @override
   Widget build(BuildContext context) => ListView(
     padding: UbaaTheme.pageInsets(context, top: 8),
@@ -119,6 +156,8 @@ class ProfileView extends StatelessWidget {
                 selected: appearance.accent,
                 onChanged: appearance.onAccentChanged,
               ),
+              const Divider(height: 1),
+              _styleTile(),
             ],
           ),
         ),

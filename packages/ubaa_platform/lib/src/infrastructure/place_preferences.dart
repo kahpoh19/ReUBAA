@@ -75,6 +75,7 @@ final class ThemePreferenceStore {
   final PreferenceValues _values;
   static const _key = 'flutter.ubaa.preferences.theme';
   static const _accentKey = 'flutter.ubaa.preferences.accent';
+  static const _styleKey = 'flutter.ubaa.preferences.ui_style';
   static const _modes = {'system', 'light', 'dark'};
   // 平台层不认识具体预设，只校验标识形状；未知预设由界面回落默认。
   static final _accentName = RegExp(r'^[a-z]{1,32}$');
@@ -108,6 +109,23 @@ final class ThemePreferenceStore {
       return Future.error(ArgumentError('未知主题色'));
     }
     return _enqueue(_accentKey, name);
+  }
+
+  /// 保存的界面风格标识；缺失或读取失败时为 null，界面回落 Material。
+  Future<String?> readStyle() async {
+    try {
+      final value = await _values.read(_styleKey);
+      return value != null && _accentName.hasMatch(value) ? value : null;
+    } on Object {
+      return null;
+    }
+  }
+
+  Future<void> writeStyle(String name) {
+    if (!_accentName.hasMatch(name)) {
+      return Future.error(ArgumentError('未知界面风格'));
+    }
+    return _enqueue(_styleKey, name);
   }
 
   Future<void> _enqueue(String key, String value) {

@@ -86,6 +86,8 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
   ThemeMode _themeMode = ThemeMode.system;
   int _accentRevision = 0;
   UbaaAccent _accent = UbaaAccent.blue;
+  int _styleRevision = 0;
+  UbaaUiStyle _uiStyle = UbaaUiStyle.material;
 
   late final _nativeTheme = widget.nativeThemeSync ?? NativeThemeSync();
 
@@ -101,6 +103,21 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
     _accentRevision++;
     setState(() => _accent = value);
     unawaited(_themeStore.writeAccent(value.name).catchError((Object _) {}));
+  }
+
+  void _setUiStyle(UbaaUiStyle value) {
+    if (value == _uiStyle) return;
+    _styleRevision++;
+    setState(() => _uiStyle = value);
+    unawaited(_themeStore.writeStyle(value.name).catchError((Object _) {}));
+  }
+
+  Future<void> _restoreUiStyle() async {
+    final revision = _styleRevision;
+    final value = UbaaUiStyle.parse(await _themeStore.readStyle());
+    if (mounted && revision == _styleRevision && value != _uiStyle) {
+      setState(() => _uiStyle = value);
+    }
   }
 
   Future<void> _restoreAccent() async {
@@ -285,6 +302,7 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
     _themeStore = ThemePreferenceStore(values: preferences);
     unawaited(_restoreTheme());
     unawaited(_restoreAccent());
+    unawaited(_restoreUiStyle());
     _reminderStore =
         widget.reminderStore ??
         (backend != null || widget.backendFactory != null

@@ -42,6 +42,19 @@ enum UbaaAccent {
   }
 }
 
+/// 界面风格。Material 是原来的样子；Miuix 仿小米 HyperOS：浅灰页面、白色无边框卡片、
+/// 大圆角和不带指示条的底部导航。只换配色和组件主题，页面结构不变。
+enum UbaaUiStyle {
+  material('Material'),
+  miuix('Miuix');
+
+  const UbaaUiStyle(this.label);
+  final String label;
+
+  static UbaaUiStyle parse(String? name) =>
+      values.asNameMap()[name] ?? UbaaUiStyle.material;
+}
+
 /// 设备外观偏好与修改回调：宿主持有并保存，设置页只展示和回调。
 @immutable
 class UiAppearanceSettings {
@@ -50,11 +63,15 @@ class UiAppearanceSettings {
     this.onThemeModeChanged,
     this.accent = UbaaAccent.blue,
     this.onAccentChanged,
+    this.style = UbaaUiStyle.material,
+    this.onStyleChanged,
   });
   final ThemeMode themeMode;
   final ValueChanged<ThemeMode>? onThemeModeChanged;
   final UbaaAccent accent;
   final ValueChanged<UbaaAccent>? onAccentChanged;
+  final UbaaUiStyle style;
+  final ValueChanged<UbaaUiStyle>? onStyleChanged;
 }
 
 /// 共享 Material 3 设计变量；宿主选择亮度与主题色，不在此持久化偏好。
@@ -137,10 +154,18 @@ class UbaaTheme {
     return EdgeInsets.fromLTRB(gutter, top ?? gutter, gutter, bottom ?? gutter);
   }
 
-  static ThemeData light({UbaaAccent accent = UbaaAccent.blue}) =>
-      _build(Brightness.light, accent);
-  static ThemeData dark({UbaaAccent accent = UbaaAccent.blue}) =>
-      _build(Brightness.dark, accent);
+  static ThemeData light({
+    UbaaAccent accent = UbaaAccent.blue,
+    UbaaUiStyle style = UbaaUiStyle.material,
+  }) => style == UbaaUiStyle.miuix
+      ? _miuix(Brightness.light, accent)
+      : _build(Brightness.light, accent);
+  static ThemeData dark({
+    UbaaAccent accent = UbaaAccent.blue,
+    UbaaUiStyle style = UbaaUiStyle.material,
+  }) => style == UbaaUiStyle.miuix
+      ? _miuix(Brightness.dark, accent)
+      : _build(Brightness.dark, accent);
 
   static ThemeData _build(Brightness brightness, UbaaAccent accent) {
     final dark = brightness == Brightness.dark;
@@ -314,6 +339,226 @@ class UbaaTheme {
           shape: controlShape,
           foregroundColor: colors.onPrimaryContainer,
           minimumSize: const Size(48, 48),
+        ),
+      ),
+    );
+  }
+
+  /// Miuix 风格：配色参考 HyperOS，页面浅灰（深色纯黑）、卡片白色（深色 #242424）、
+  /// 强调色默认 HyperOS 蓝，选了别的主题色时按同样方式换色相。
+  static ThemeData _miuix(Brightness brightness, UbaaAccent accent) {
+    final dark = brightness == Brightness.dark;
+    final primary = accent.retint(
+      dark ? const Color(0xFF277AF7) : const Color(0xFF3482FF),
+    );
+    final page = dark ? Colors.black : const Color(0xFFF7F7F7);
+    final card = dark ? const Color(0xFF242424) : Colors.white;
+    final text = dark ? Colors.white : Colors.black;
+    final summary = dark ? const Color(0xFF8C8C8C) : const Color(0xFF8A8A8A);
+    final fill = dark ? const Color(0xFF2E2E2E) : const Color(0xFFF0F0F0);
+    final line = dark ? const Color(0xFF2B2B2B) : const Color(0xFFEDEDED);
+    final tinted = Color.alphaBlend(
+      primary.withValues(alpha: dark ? .24 : .12),
+      card,
+    );
+    final colors =
+        ColorScheme.fromSeed(
+          seedColor: primary,
+          brightness: brightness,
+          dynamicSchemeVariant: DynamicSchemeVariant.neutral,
+        ).copyWith(
+          primary: primary,
+          onPrimary: Colors.white,
+          primaryContainer: tinted,
+          onPrimaryContainer: primary,
+          secondary: summary,
+          onSecondary: Colors.white,
+          secondaryContainer: tinted,
+          onSecondaryContainer: primary,
+          surface: page,
+          surfaceDim: page,
+          surfaceBright: card,
+          surfaceContainerLowest: card,
+          surfaceContainerLow: card,
+          surfaceContainer: card,
+          surfaceContainerHigh: fill,
+          surfaceContainerHighest: dark
+              ? const Color(0xFF383838)
+              : const Color(0xFFE6E6E6),
+          onSurface: text,
+          onSurfaceVariant: summary,
+          outline: dark ? const Color(0xFF5C5C5C) : const Color(0xFFBDBDBD),
+          outlineVariant: line,
+          inverseSurface: dark ? Colors.white : const Color(0xFF303030),
+          onInverseSurface: dark ? Colors.black : Colors.white,
+          inversePrimary: primary,
+          surfaceTint: Colors.transparent,
+        );
+    final radius = BorderRadius.circular(16);
+    final controlShape = RoundedRectangleBorder(borderRadius: radius);
+    WidgetStateProperty<Color> pick(Color on, Color off) =>
+        WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? on : off,
+        );
+    return ThemeData(
+      adaptations: [_AppleSwitchAdaptation(primary)],
+      useMaterial3: true,
+      fontFamily: debugFontFamily,
+      colorScheme: colors,
+      scaffoldBackgroundColor: page,
+      visualDensity: VisualDensity.standard,
+      dividerTheme: DividerThemeData(color: line, thickness: 1),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: card,
+        indicatorColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            color: states.contains(WidgetState.selected) ? text : summary,
+          ),
+        ),
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => TextStyle(
+            fontSize: 12,
+            fontWeight: states.contains(WidgetState.selected)
+                ? FontWeight.w600
+                : FontWeight.w400,
+            color: states.contains(WidgetState.selected) ? text : summary,
+          ),
+        ),
+      ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: page,
+        indicatorColor: tinted,
+        useIndicator: true,
+      ),
+      chipTheme: ChipThemeData(
+        showCheckmark: false,
+        backgroundColor: fill,
+        selectedColor: tinted,
+        side: BorderSide.none,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: card,
+        modalBackgroundColor: card,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+      ),
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: card,
+        rangePickerBackgroundColor: card,
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        position: PopupMenuPosition.under,
+        color: card,
+        shape: controlShape,
+      ),
+      hoverColor: primary.withValues(alpha: 0.04),
+      focusColor: primary.withValues(alpha: 0.10),
+      checkboxTheme: CheckboxThemeData(
+        overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+        splashRadius: 0,
+        shape: const CircleBorder(),
+        fillColor: pick(primary, Colors.transparent),
+      ),
+      // HyperOS 的开关：白色圆钮，开时轨道是强调色，关时浅灰，没有描边。
+      switchTheme: SwitchThemeData(
+        overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+        splashRadius: 0,
+        thumbColor: const WidgetStatePropertyAll(Colors.white),
+        trackColor: pick(
+          primary,
+          dark ? const Color(0xFF4A4A4A) : const Color(0xFFE6E6E6),
+        ),
+        trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
+      ),
+      listTileTheme: ListTileThemeData(
+        shape: controlShape,
+        titleTextStyle: TextStyle(
+          fontFamily: debugFontFamily,
+          color: text,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+        subtitleTextStyle: TextStyle(
+          fontFamily: debugFontFamily,
+          color: summary,
+          fontSize: 13,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          shape: controlShape,
+          foregroundColor: primary,
+        ),
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: page,
+        centerTitle: false,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: TextStyle(
+          fontFamily: debugFontFamily,
+          color: text,
+          fontSize: 28,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: fill,
+        border: OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide(color: primary, width: 2),
+        ),
+      ),
+      cardTheme: CardThemeData(
+        clipBehavior: Clip.antiAlias,
+        margin: EdgeInsets.zero,
+        elevation: 0,
+        color: card,
+        shape: controlShape,
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          shape: controlShape,
+          minimumSize: const Size(48, 48),
+        ),
+      ),
+      // HyperOS 没有描边按钮，次要按钮用浅灰底。
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          shape: controlShape,
+          backgroundColor: fill,
+          foregroundColor: text,
+          side: BorderSide.none,
+          minimumSize: const Size(48, 48),
+        ),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: SegmentedButton.styleFrom(
+          backgroundColor: fill,
+          selectedBackgroundColor: card,
+          selectedForegroundColor: text,
+          side: BorderSide.none,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
     );
