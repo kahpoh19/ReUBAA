@@ -12,6 +12,12 @@ on:
           - armeabi-v7a
           - x86_64
         default: arm64-v8a
+  # 全平台发布流程按架构调用这里，签名 Secrets 由调用方 inherit 传入。
+  workflow_call:
+    inputs:
+      abi:
+        type: string
+        default: arm64-v8a
 permissions:
   contents: read
 concurrency:

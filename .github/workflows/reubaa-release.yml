@@ -1,0 +1,283 @@
+name: ReUBAA 全平台发布
+# fork 自用：一次构建 Android、Windows、Linux、macOS、iOS 并发布到本仓库的 GitHub Releases。
+# Android 用仓库 Secrets 里自己的证书签名；没有苹果开发者证书，macOS、iOS 是未签名包；
+# HarmonyOS 需要华为的签名材料，暂不构建。
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release 的 Tag，留空用 reubaa-v<版本号>-<运行序号>
+        type: string
+        required: false
+      prerelease:
+        description: 标记为预发布
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: reubaa-release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  android:
+    strategy:
+      fail-fast: false
+      matrix:
+        abi:
+          - arm64-v8a
+          - armeabi-v7a
+          - x86_64
+    uses: ./.github/workflows/android-release.yml
+    with:
+      abi: ${{ matrix.abi }}
+    secrets: inherit
+
+  windows:
+    runs-on: windows-2025
+    timeout-minutes: 180
+    env:
+      UBAA_APP_SERVICE_URL: ''
+      UBAA_DISTRIBUTION_CHANNEL: github
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # 各平台 runner 的 Python 版本不一，直接从 version.toml 取，不依赖 tomllib。
+      - &version
+        name: 读取版本号
+        shell: bash
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"\r\{0,1\}$/\1/p' version.toml)
+          [[ -n "$version" ]] || { echo '::error::version.toml 里没有读到版本号'; exit 1; }
+          echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
+      - uses: ./.github/actions/toolchain
+      - name: 准备固定 Flutter
+        uses: ./.github/actions/flutter
+      - name: 构建 Windows 发布包
+        shell: bash
+        run: |-
+          just flutter-build platform=windows mode=release
+          bash scripts/release/verify-flutter-artifact.sh windows apps/ubaa_flutter/build/windows/x64/runner/Release
+      - name: 生成 EXE 安装器
+        shell: pwsh
+        run: |-
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$env:RELEASE_VERSION" scripts/release/platforms/reubaa_windows.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ReUBAA-${{ env.RELEASE_VERSION }}-windows-x64
+          path: .ubaa_local/release/public/*.exe
+          if-no-files-found: error
+          retention-days: 7
+
+  linux:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+    env:
+      UBAA_APP_SERVICE_URL: ''
+      UBAA_DISTRIBUTION_CHANNEL: github
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - *version
+      - uses: ./.github/actions/toolchain
+      - name: 准备 Linux 依赖
+        run: sudo apt-get update --error-on=any && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libsecret-1-dev
+      - name: 准备固定 Flutter
+        uses: ./.github/actions/flutter
+      - name: 构建 Linux 发布包
+        shell: bash
+        run: |-
+          just flutter-build platform=linux mode=release
+          bash scripts/release/verify-flutter-artifact.sh linux "apps/ubaa_flutter/build/linux/${{ matrix.arch }}/release/bundle"
+          mkdir -p .ubaa_local/release/public
+          tar -czf ".ubaa_local/release/public/ReUBAA-${RELEASE_VERSION}-linux-${{ matrix.arch }}.tar.gz" -C "apps/ubaa_flutter/build/linux/${{ matrix.arch }}/release" bundle
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ReUBAA-${{ env.RELEASE_VERSION }}-linux-${{ matrix.arch }}
+          path: .ubaa_local/release/public/*.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            arch: x64
+          - os: ubuntu-24.04-arm
+            arch: arm64
+
+  macos:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+    env:
+      UBAA_APP_SERVICE_URL: ''
+      UBAA_DISTRIBUTION_CHANNEL: github
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - *version
+      - uses: ./.github/actions/toolchain
+      - name: 准备固定 Flutter
+        uses: ./.github/actions/flutter
+      # 没有 Developer ID：关掉 Xcode 签名，构建后做 ad-hoc 签名，Apple 芯片才能启动。
+      - name: 构建 macOS 并打包 DMG
+        shell: bash
+        env:
+          RELEASE_ARCH: ${{ matrix.arch }}
+        run: |-
+          arch="$RELEASE_ARCH"
+          cat > apps/ubaa_flutter/macos/Runner/Configs/LocalSigning.xcconfig <<CONFIG
+          UBAA_CODE_SIGN_STYLE = Manual
+          CODE_SIGNING_ALLOWED = NO
+          ARCHS = $arch
+          ONLY_ACTIVE_ARCH = YES
+          CONFIG
+          export FLUTTER_XCODE_ARCHS="$arch"
+          just flutter-build platform=macos mode=release
+          app=apps/ubaa_flutter/build/macos/Build/Products/Release/UBAA.app
+          while IFS= read -r -d '' library; do
+            codesign --force --sign - "$library"
+          done < <(find "$app/Contents" -name '*.dylib' -type f -print0)
+          while IFS= read -r -d '' framework; do
+            codesign --force --sign - "$framework"
+          done < <(find "$app/Contents/Frameworks" -depth -name '*.framework' -type d -print0)
+          codesign --force --sign - --entitlements apps/ubaa_flutter/macos/Runner/Release.entitlements "$app"
+          codesign --verify --deep --strict "$app"
+          lipo "$app/Contents/MacOS/UBAA" -verify_arch "$arch"
+          image=.ubaa_local/release/macos/image
+          mkdir -p "$image" .ubaa_local/release/public
+          ditto "$app" "$image/ReUBAA.app"
+          ln -s /Applications "$image/Applications"
+          hdiutil create -volname ReUBAA -srcfolder "$image" -ov -format UDZO \
+            ".ubaa_local/release/public/ReUBAA-${RELEASE_VERSION}-macos-${arch}.dmg"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ReUBAA-${{ env.RELEASE_VERSION }}-macos-${{ matrix.arch }}
+          path: .ubaa_local/release/public/*.dmg
+          if-no-files-found: error
+          retention-days: 7
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-26
+            arch: arm64
+          - os: macos-26-intel
+            arch: x86_64
+
+  ios:
+    runs-on: xcode-27
+    timeout-minutes: 180
+    env:
+      UBAA_APP_SERVICE_URL: ''
+      UBAA_DISTRIBUTION_CHANNEL: github
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - *version
+      - uses: ./.github/actions/toolchain
+      - name: 准备固定 Flutter
+        uses: ./.github/actions/flutter
+      - name: 选择 iOS 固定 Xcode
+        shell: bash
+        run: |
+          source scripts/tools/versions.env
+          developer_dir="/Applications/Xcode_${XCODE_IOS_VERSION}.app/Contents/Developer"
+          if [[ ! -d "$developer_dir" ]]; then
+            developer_dir=$(xcode-select -p)
+          fi
+          export DEVELOPER_DIR="$developer_dir"
+          [[ "$(xcodebuild -version | head -n 1)" == "Xcode $XCODE_IOS_VERSION" ]] || exit 1
+          printf 'DEVELOPER_DIR=%s\n' "$DEVELOPER_DIR" >> "$GITHUB_ENV"
+          xcodebuild -version
+      # 没有苹果开发者证书，只能出未签名 IPA，需要用 AltStore、Sideloadly 等自己签名安装。
+      - name: 构建未签名 IPA
+        shell: bash
+        run: |-
+          just flutter-build platform=ios-device mode=release
+          payload=.ubaa_local/release/ios/Payload
+          mkdir -p "$payload" .ubaa_local/release/public
+          ditto apps/ubaa_flutter/build/ios/iphoneos/Runner.app "$payload/Runner.app"
+          (cd .ubaa_local/release/ios && zip -qry "../public/ReUBAA-${RELEASE_VERSION}-ios-unsigned.ipa" Payload)
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ReUBAA-${{ env.RELEASE_VERSION }}-ios-unsigned
+          path: .ubaa_local/release/public/*.ipa
+          if-no-files-found: error
+          retention-days: 7
+
+  # 安卓签名包是必须的；其他平台哪个没打出来就跳过，在说明里列出来。
+  release:
+    needs:
+      - android
+      - windows
+      - linux
+      - macos
+      - ios
+    if: ${{ !cancelled() && needs.android.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      INPUT_TAG: ${{ inputs.tag }}
+      PRERELEASE: ${{ inputs.prerelease }}
+      RESULTS: >-
+        Windows=${{ needs.windows.result }}
+        Linux=${{ needs.linux.result }}
+        macOS=${{ needs.macos.result }}
+        iOS=${{ needs.ios.result }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - *version
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: ReUBAA-*
+          path: dist
+          merge-multiple: true
+      - name: 生成校验和与发布说明
+        shell: bash
+        run: |
+          cd dist
+          ls -l
+          sha256sum ./* | sed 's# \./# #' > SHA256SUMS.txt
+          cd ..
+          tag="${INPUT_TAG:-reubaa-v${RELEASE_VERSION}-${GITHUB_RUN_NUMBER}}"
+          echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
+          {
+            echo "ReUBAA ${RELEASE_VERSION}，基于 [UBAA](https://github.com/BUAASubnet/UBAA) 修改，提交 \`${GITHUB_SHA::8}\`。"
+            echo
+            echo "## 安装说明"
+            echo
+            echo "- **Android**：一般手机下载 \`arm64-v8a\`。包名 \`cn.edu.reubaa\`，可以和原版同时安装；以后的版本用同一证书签名，可直接覆盖安装。"
+            echo "- **Windows**：运行安装器，装到 \`%LOCALAPPDATA%\\Programs\\ReUBAA\`，和原版分开。安装器未做代码签名，SmartScreen 提示时选“仍要运行”。"
+            echo "- **Linux**：解压后运行 \`bundle/UBAA\`，需要 GTK 3 和 libsecret。"
+            echo "- **macOS**：未经苹果公证，首次打开在“系统设置 → 隐私与安全性”里允许，或执行 \`xattr -cr /Applications/ReUBAA.app\`。Apple 芯片选 \`arm64\`，Intel 选 \`x86_64\`。"
+            echo "- **iOS**：未签名 IPA，需要用 AltStore、Sideloadly 等工具用自己的 Apple ID 签名安装。"
+            echo "- **HarmonyOS**：需要华为签名材料，暂不提供。"
+            echo
+            echo "## 本次构建"
+            echo
+            echo "Android=success ${RESULTS}" | tr ' ' '\n' | sed 's/^/- /'
+            echo
+            echo "各文件的 SHA-256 见 \`SHA256SUMS.txt\`。"
+          } > notes.md
+          cat notes.md
+      - name: 发布到 GitHub Releases
+        shell: bash
+        run: |
+          flags=()
+          [[ "$PRERELEASE" == true ]] && flags+=(--prerelease)
+          gh release create "$RELEASE_TAG" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "ReUBAA ${RELEASE_VERSION}（构建 ${GITHUB_RUN_NUMBER}）" \
+            --notes-file notes.md \
+            "${flags[@]}"
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json url --jq .url
