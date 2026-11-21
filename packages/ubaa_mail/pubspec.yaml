@@ -1,0 +1,21 @@
+name: ubaa_mail
+description: ReUBAA 的北航邮箱收发，走 IMAP/SMTP 和 Coremail 客户端专用密码。
+publish_to: none
+resolution: workspace
+version: 1.0.0
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+  enough_mail: 3.0.0
+  ubaa_domain:
+    path: ../ubaa_domain
+  ubaa_platform:
+    path: ../ubaa_platform
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
