@@ -117,8 +117,7 @@ extension _UbaaAppHostReminders on _UbaaAppHostState {
           : home.projected
           ? _todoNotices(home.todos, settings.todoLeads, now)
           : null;
-      final all = [...courses, ...?todos]
-        ..sort((a, b) => a.at.compareTo(b.at));
+      final all = [...courses, ...?todos]..sort((a, b) => a.at.compareTo(b.at));
       final keep = all.take(_maxScheduledNotices).map((n) => n.id).toSet();
       if (!current()) return;
       await _notifications.replace(

@@ -48,6 +48,7 @@ class _AboutViewState extends State<AboutView> {
       );
     }
   }
+
   @override
   void initState() {
     super.initState();
