@@ -96,7 +96,7 @@ void main() {
   testWidgets('没登录时显示说明，密码错误提示原因，登录后显示收件箱', (tester) async {
     final service = _FakeMail();
     await _pump(tester, service);
-    expect(find.text('登录北航邮箱'), findsOneWidget);
+    expect(find.text('登录 @buaa.edu.cn 邮箱'), findsOneWidget);
 
     await tester.enterText(find.widgetWithText(TextField, '邮箱地址'), 'me');
     await tester.enterText(find.widgetWithText(TextField, '客户端专用密码'), 'wrong');

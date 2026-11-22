@@ -484,7 +484,7 @@ class FeatureGridView extends StatelessWidget {
     children: [
       if (onOpenMail != null)
         UiEntryCard(
-          title: '北航邮箱',
+          title: '邮箱',
           icon: Icons.mail_outline,
           subtitle: '收发 @buaa.edu.cn 的邮件',
           onTap: onOpenMail!,

@@ -1,7 +1,7 @@
 import 'package:ubaa_domain/ubaa_domain.dart';
 import '../../shared/when.dart' show uiCampusNow, uiClock, uiDay;
 
-const mailTitle = '北航邮箱';
+const mailTitle = '邮箱';
 
 /// 列表里的时间：当天只显示钟点，其余显示日期。
 String mailListTime(DateTime? date, {DateTime? now}) {

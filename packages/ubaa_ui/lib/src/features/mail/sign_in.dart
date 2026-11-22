@@ -67,7 +67,7 @@ class _MailSignInViewState extends State<MailSignInView> {
         child: ListView(
           padding: UbaaTheme.pageInsets(context),
           children: [
-            Text('登录北航邮箱', style: theme.textTheme.titleLarge),
+            Text('登录 @buaa.edu.cn 邮箱', style: theme.textTheme.titleLarge),
             const SizedBox(height: 8),
             Text(
               'ReUBAA 通过 IMAP/SMTP 收发邮件，要用 Coremail 的客户端专用密码，不是统一认证密码。',
@@ -84,7 +84,7 @@ class _MailSignInViewState extends State<MailSignInView> {
             ),
             const UiInfoRow(
               icon: Icons.looks_3_outlined,
-              text: '找到「客户端专用密码」（一般在账号与安全或客户端设置下），新建一个并复制到下面',
+              text: '在「个人设置 → 安全设置 → 客户端专用密码」里新建一个，复制到下面',
             ),
             const SizedBox(height: 20),
             TextField(
