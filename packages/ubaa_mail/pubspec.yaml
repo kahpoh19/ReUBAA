@@ -2,7 +2,7 @@ name: ubaa_mail
 description: ReUBAA 的北航邮箱收发，走 IMAP/SMTP 和 Coremail 客户端专用密码。
 publish_to: none
 resolution: workspace
-version: 1.1.1
+version: 1.1.2
 
 environment:
   sdk: ^3.11.5
