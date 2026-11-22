@@ -110,7 +110,8 @@ class ChangedChecksTest(unittest.TestCase):
             ['just', 'check-sensitive'], ['git', 'diff', '--check'],
             ['just', 'app-service-content-check'], ['just', 'app-service-check'], ['just', 'check-strict'],
             ['bash', 'scripts/check/flutter-workspace.sh', 'check', 'ubaa_domain', 'ubaa_platform', 'ubaa_app',
-             'ubaa_ui', 'ubaa_bindings', 'ubaa_host', 'ubaa_flutter', 'ubaa_test_support'],
+             'ubaa_ui', 'ubaa_bindings', 'ubaa_host', 'ubaa_flutter', 'ubaa_mail',
+             'ubaa_test_support'],
             ['just', 'integration-test'],
             ['env', 'CARGO_INCREMENTAL=0', 'CARGO_BUILD_JOBS=1', 'just', 'flutter-codegen-check'],
         ]
