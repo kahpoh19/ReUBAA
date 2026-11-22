@@ -55,11 +55,15 @@ class UiTag extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
       style: Theme.of(context).textTheme.labelMedium?.copyWith(color: fg),
     );
+    // Miuix 的标签是胶囊形。
+    final miuix = UbaaTheme.miuix(context);
     return Container(
-      padding: padding,
+      padding: miuix
+          ? const EdgeInsets.symmetric(horizontal: 10, vertical: 3)
+          : padding,
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(radius),
+        borderRadius: BorderRadius.circular(miuix ? 100 : radius),
       ),
       child: icon == null
           ? text

@@ -7,6 +7,7 @@ import '../../shared/layout/seven_day_grid.dart';
 import 'calendar_values.dart';
 import 'format.dart';
 import 'list_content.dart' show agendaSourceColor;
+import 'month_calendar.dart' show agendaDayColors;
 
 typedef _Slot = ({
   AgendaEntry entry,
@@ -476,6 +477,12 @@ class _WeekHeaderDay extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final look = agendaDayColors(
+      context,
+      selected: selected,
+      today: today,
+      plain: colors.onSurface,
+    );
     return Semantics(
       button: true,
       selected: selected,
@@ -503,21 +510,13 @@ class _WeekHeaderDay extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: today
-                      ? colors.primary
-                      : selected
-                      ? colors.primaryContainer
-                      : null,
+                  color: look.circle,
                 ),
                 child: Text(
                   '${day.day}',
                   style: theme.textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.w500,
-                    color: today
-                        ? colors.onPrimary
-                        : selected
-                        ? colors.onPrimaryContainer
-                        : colors.onSurface,
+                    color: look.number,
                   ),
                 ),
               ),

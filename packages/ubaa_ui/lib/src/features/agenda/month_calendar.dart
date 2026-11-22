@@ -1,8 +1,44 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:ubaa_domain/ubaa_domain.dart';
+import '../../theme.dart';
 import 'calendar_values.dart';
 import 'format.dart';
+
+/// 日期圆的底色和数字颜色。Material：今天实心、选中浅色；Miuix 跟 HyperOS 日历一样，
+/// 选中实心、今天只把数字染成强调色。[ring] 表示今天又被选中时要不要加一圈浅色边。
+({Color circle, Color number, bool ring}) agendaDayColors(
+  BuildContext context, {
+  required bool selected,
+  required bool today,
+  required Color plain,
+}) {
+  final colors = Theme.of(context).colorScheme;
+  if (UbaaTheme.miuix(context)) {
+    return (
+      circle: selected ? colors.primary : Colors.transparent,
+      number: selected
+          ? colors.onPrimary
+          : today
+          ? colors.primary
+          : plain,
+      ring: false,
+    );
+  }
+  return (
+    circle: today
+        ? colors.primary
+        : selected
+        ? colors.primaryContainer
+        : Colors.transparent,
+    number: today
+        ? colors.onPrimary
+        : selected
+        ? colors.onPrimaryContainer
+        : plain,
+    ring: today && selected,
+  );
+}
 
 /// 日期下方的圆点：课程只占一个中性色点，其余事项按来源色去重，最多三个。
 ///
@@ -93,6 +129,14 @@ class AgendaMonthCalendar extends StatelessWidget {
               final selected = day == agendaDay(date);
               final isToday = today != null && agendaDay(today!) == day;
               final colors = Theme.of(context).colorScheme;
+              final look = agendaDayColors(
+                context,
+                selected: selected,
+                today: isToday,
+                plain: day.month == date.month
+                    ? colors.onSurface
+                    : colors.outlineVariant,
+              );
               return Semantics(
                 label: '${agendaDate(day)}，$count项',
                 selected: selected,
@@ -113,12 +157,8 @@ class AgendaMonthCalendar extends StatelessWidget {
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: isToday
-                                ? colors.primary
-                                : selected
-                                ? colors.primaryContainer
-                                : null,
-                            border: isToday && selected
+                            color: look.circle,
+                            border: look.ring
                                 ? Border.all(
                                     color: colors.primaryContainer,
                                     width: 2.5,
@@ -131,13 +171,7 @@ class AgendaMonthCalendar extends StatelessWidget {
                               '${day.day}',
                               maxLines: 1,
                               style: TextStyle(
-                                color: isToday
-                                    ? colors.onPrimary
-                                    : selected
-                                    ? colors.onPrimaryContainer
-                                    : day.month == date.month
-                                    ? colors.onSurface
-                                    : colors.outlineVariant,
+                                color: look.number,
                                 fontWeight: selected || isToday
                                     ? FontWeight.w500
                                     : null,
@@ -230,18 +264,13 @@ class AgendaDateStrip extends StatelessWidget {
                   final circleSize = MediaQuery.textScalerOf(
                     context,
                   ).scale(36).clamp(36.0, 50.0);
-                  final Color circle = isToday
-                      ? colors.primary
-                      : selected
-                      ? colors.primaryContainer
-                      : Colors.transparent;
-                  final Color number = isToday
-                      ? colors.onPrimary
-                      : selected
-                      ? colors.onPrimaryContainer
-                      : weekend
-                      ? colors.onSurfaceVariant
-                      : colors.onSurface;
+                  final look = agendaDayColors(
+                    context,
+                    selected: selected,
+                    today: isToday,
+                    plain: weekend ? colors.onSurfaceVariant : colors.onSurface,
+                  );
+                  final circle = look.circle, number = look.number;
                   return Semantics(
                     button: true,
                     selected: selected,
@@ -276,7 +305,7 @@ class AgendaDateStrip extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: circle,
                                 shape: BoxShape.circle,
-                                border: selected && isToday
+                                border: look.ring
                                     ? Border.all(
                                         color: colors.primaryContainer,
                                         width: 3,

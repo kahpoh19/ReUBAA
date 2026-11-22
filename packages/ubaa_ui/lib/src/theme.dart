@@ -407,7 +407,10 @@ class UbaaTheme {
           onSurface: text,
           onSurfaceVariant: summary,
           outline: dark ? const Color(0xFF5C5C5C) : const Color(0xFFBDBDBD),
-          outlineVariant: line,
+          // 分隔线已经隐藏；这个颜色还用于非本月日期、未进行课程的色条，要看得见。
+          outlineVariant: dark
+              ? const Color(0xFF4A4A4A)
+              : const Color(0xFFCCCCCC),
           inverseSurface: dark ? Colors.white : const Color(0xFF303030),
           onInverseSurface: dark ? Colors.black : Colors.white,
           inversePrimary: primary,

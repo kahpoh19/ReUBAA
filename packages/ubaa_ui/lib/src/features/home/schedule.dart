@@ -6,6 +6,8 @@ import '../../shared/text.dart';
 import '../../common/state_panel.dart';
 import '../../common/tag.dart';
 import '../../common/section.dart' show UiChevron, UiSectionHeader;
+import '../../theme.dart' show UbaaTheme;
+import '../schedule/colors.dart' show ScheduleCourseColors;
 
 typedef HomeScheduleRoute = ({String label, ConnectionMode? route});
 
@@ -153,6 +155,7 @@ class _CourseCard extends StatelessWidget {
         .toList();
     final place = uiNonBlank(course.place);
     final muted = colors.onSurfaceVariant;
+    final miuix = UbaaTheme.miuix(context);
     final card = Card(
       child: InkWell(
         onTap: onTap,
@@ -205,10 +208,18 @@ class _CourseCard extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 14),
+                // Miuix 的色条用课程色，和课表、日程同色。
                 child: Container(
-                  width: 3,
+                  width: miuix ? 4 : 3,
                   decoration: BoxDecoration(
-                    color: active ? colors.primary : colors.outlineVariant,
+                    color: miuix
+                        ? ScheduleCourseColors.accent(
+                            detail.title,
+                            theme.brightness,
+                          )
+                        : active
+                        ? colors.primary
+                        : colors.outlineVariant,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),

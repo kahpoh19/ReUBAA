@@ -9,6 +9,7 @@ import 'colors.dart' show ScheduleCourseColors;
 import '../../shared/schedule_values.dart' show uiScheduled;
 import '../../shared/text.dart' show uiNonBlank;
 import '../../theme.dart' show UbaaTheme;
+import '../../theme.dart' show UbaaTheme;
 import '../../shared/layout/seven_day_grid.dart';
 
 /// 冻结旧版的七日节次网格；时间缺失或冲突不造成课程丢失。
@@ -372,21 +373,43 @@ class _ScheduleCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final detail = group.details.first;
     final p = detail.presentation! as ScheduleCoursePresentation;
-    final foreground = ScheduleCourseColors.foreground(background);
+    // Miuix 跟 HyperOS 日历一样：课程色淡染底、左侧色条、字用课程色；
+    // Material 沿用中等饱和度的色块配黑白字。
+    final miuix = UbaaTheme.miuix(context);
+    final brightness = Theme.of(context).brightness;
+    final accent = ScheduleCourseColors.accent(detail.title, brightness);
+    final fill = miuix
+        ? Color.alphaBlend(
+            accent.withValues(alpha: brightness == Brightness.dark ? .28 : .16),
+            Theme.of(context).colorScheme.surfaceContainerLow,
+          )
+        : background;
+    final foreground = miuix
+        ? (brightness == Brightness.dark
+              ? accent
+              : HSLColor.fromColor(accent).withLightness(.32).toColor())
+        : ScheduleCourseColors.foreground(background);
     final multiple = group.details.length > 1;
     final short = group.end == group.begin;
     return Padding(
       padding: const EdgeInsets.all(1),
       child: Material(
-        color: background,
-        borderRadius: BorderRadius.circular(6),
+        color: fill,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(miuix ? 8 : 6),
+        ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () => multiple
               ? uiShowScheduleGroup(context, group.details)
               : uiShowScheduleDetails(context, detail),
-          child: Padding(
+          child: Container(
             padding: const EdgeInsets.all(4),
+            decoration: miuix
+                ? BoxDecoration(
+                    border: Border(left: BorderSide(color: accent, width: 3)),
+                  )
+                : null,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
