@@ -8,6 +8,7 @@ export 'src/cloud_print/service.dart';
 export 'src/models.dart';
 
 export 'src/app_link.dart';
+export 'src/app_update.dart';
 export 'src/feature/schedule/widget_snapshot.dart';
 
 export 'src/feature/ihome.dart';

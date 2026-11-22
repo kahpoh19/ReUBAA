@@ -117,6 +117,7 @@ extension UbaaShellNavigation on _UbaaMainShellState {
             ? AboutView(
                 loadVersion: widget.onLoadAppVersion,
                 openLink: widget.onOpenAppLink,
+                updater: widget.appUpdater,
                 onUnlockHidden: widget.onUnlockHidden,
               )
             : _buildProfile()

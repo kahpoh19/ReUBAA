@@ -31,4 +31,5 @@ Future<void> bootstrapUbaaFlutterApp({
   createCapabilities: createCapabilities ?? createDefaultPlatformCapabilities,
   runApplication: runApplication ?? runApp,
   mailService: ImapMailService(),
+  appUpdater: GithubAppUpdater(),
 );

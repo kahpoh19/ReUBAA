@@ -3,6 +3,7 @@ package cn.edu.reubaa
 import android.content.Context
 import cn.edu.reubaa.background.EngineHolder
 import cn.edu.reubaa.background.KeepAliveChannel
+import cn.edu.reubaa.platform.AppUpdateChannel
 import cn.edu.reubaa.platform.AppearanceChannel
 import cn.edu.reubaa.platform.DefaultNetworkChannel
 import cn.edu.reubaa.platform.PrivatePaths
@@ -17,12 +18,14 @@ class ContextChannels(context: Context, engine: FlutterEngine) {
     private val paths = PrivatePaths(context, messenger)
     private val widgets = WidgetChannel(context, messenger)
     private val appearance = AppearanceChannel(context, messenger)
+    private val update = AppUpdateChannel(context, messenger)
     val notifications = NotificationsChannel(context, messenger) { EngineHolder.activity }
     val keepAlive = KeepAliveChannel(context, engine, this)
 
     fun dispose() {
         keepAlive.dispose()
         notifications.dispose()
+        update.dispose()
         appearance.dispose()
         widgets.dispose()
         paths.dispose()

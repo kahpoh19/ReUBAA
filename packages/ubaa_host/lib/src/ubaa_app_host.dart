@@ -42,6 +42,7 @@ Future<void> bootstrapUbaaHost({
   PlatformAppInformation? appInformation,
   DiagnosticReportExporter reportExporter = const DiagnosticReportExporter(),
   MailService? mailService,
+  AppUpdater? appUpdater,
 }) async {
   ensureFlutterInitialized();
   final preferences = preferenceValues ?? PluginPreferenceValues();
@@ -81,6 +82,7 @@ Future<void> bootstrapUbaaHost({
         diagnosticReportExporter: reportExporter,
         startupDiagnostics: diagnostics,
         mailService: mailService,
+        appUpdater: appUpdater,
         materialRecovery: capabilities.materialRecovery,
       ),
     );
@@ -207,6 +209,7 @@ class UbaaAppHost extends StatefulWidget {
     this.keepAliveGateway,
     this.urlOpener,
     this.mailService,
+    this.appUpdater,
     super.key,
   });
 
@@ -261,6 +264,9 @@ class UbaaAppHost extends StatefulWidget {
 
   /// 北航邮箱收发；只有带邮件实现的宿主才传，为空时不显示入口。
   final MailService? mailService;
+
+  /// 关于页的检查更新；为空时不显示（鸿蒙宿主暂不提供）。
+  final AppUpdater? appUpdater;
 
   Future<bool> openExternalUrl(Uri url) =>
       (urlOpener ?? platform.openExternalUrl)(url);

@@ -116,6 +116,7 @@ class UbaaMainShell extends StatefulWidget {
     this.healthCloudRead,
     this.financeService,
     this.mailService,
+    this.appUpdater,
     this.onOpenAppLink,
     this.onLoadAllGrades,
     this.gradeScoreNotice,
@@ -266,6 +267,9 @@ class UbaaMainShell extends StatefulWidget {
 
   /// 北航邮箱收发；为空时不显示入口（鸿蒙宿主暂不提供）。
   final MailService? mailService;
+
+  /// 关于页的检查更新；为空时不显示。
+  final AppUpdater? appUpdater;
   final Future<bool> Function(AppLink)? onOpenAppLink;
   final GradesAggregateLoader? onLoadAllGrades;
   final GradeScoreNotice? gradeScoreNotice;

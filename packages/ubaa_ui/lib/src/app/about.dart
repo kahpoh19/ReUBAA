@@ -6,11 +6,20 @@ import 'package:ubaa_domain/ubaa_domain.dart';
 import '../common/app_links.dart' show uiShowAppLinkFailure;
 import '../shared/layout/rail_identity.dart' show UiAppIcon;
 import '../shared/feedback.dart';
+import '../features/app_update/update_tile.dart';
 
 class AboutView extends StatefulWidget {
-  const AboutView({this.loadVersion, this.openLink, this.onUnlockHidden});
+  const AboutView({
+    this.loadVersion,
+    this.openLink,
+    this.updater,
+    this.onUnlockHidden,
+  });
   final Future<String?> Function()? loadVersion;
   final Future<bool> Function(AppLink)? openLink;
+
+  /// 检查更新；为空时不显示这一项。
+  final AppUpdater? updater;
 
   /// 连点应用卡片解锁设置里的隐藏功能；已解锁或不支持时为 null，卡片不响应点按。
   final Future<void> Function()? onUnlockHidden;
@@ -139,6 +148,19 @@ class _AboutViewState extends State<AboutView> {
             ),
           ),
         ),
+        if (widget.updater case final updater?) ...[
+          const SizedBox(height: 16),
+          Card(
+            clipBehavior: Clip.antiAlias,
+            // 版本读完再建，避免拿空版本比较。
+            child: loading
+                ? const ListTile(
+                    leading: Icon(Icons.system_update_outlined),
+                    title: Text('检查更新'),
+                  )
+                : AppUpdateTile(updater: updater, currentVersion: version),
+          ),
+        ],
         const SizedBox(height: 16),
         Text(
           '本软件由学生开发者制作并维护，为第三方工具，与北京航空航天大学官方无任何利益关系',
