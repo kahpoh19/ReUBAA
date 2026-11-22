@@ -1,6 +1,6 @@
 {
   "name": "ubaa_bindings",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "UBAA Rust Core 的 FRB FFI plugin。",
   "main": "Index.ets",
   "author": "BUAASubnet",

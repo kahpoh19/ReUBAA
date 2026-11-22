@@ -1,6 +1,6 @@
 PODS:
   - FlutterMacOS (1.0.0)
-  - ubaa_bindings (1.0.0):
+  - ubaa_bindings (1.1.0):
     - FlutterMacOS
 
 DEPENDENCIES:
