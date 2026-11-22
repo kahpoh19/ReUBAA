@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Release 的 Tag，留空用 reubaa-v<版本号>-<运行序号>
+        description: Release 的 Tag，留空用 reubaa-v<版本号>
         type: string
         required: false
       prerelease:
@@ -248,7 +248,7 @@ jobs:
           ls -l
           sha256sum ./* | sed 's# \./# #' > SHA256SUMS.txt
           cd ..
-          tag="${INPUT_TAG:-reubaa-v${RELEASE_VERSION}-${GITHUB_RUN_NUMBER}}"
+          tag="${INPUT_TAG:-reubaa-v${RELEASE_VERSION}}"
           echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
           {
             echo "ReUBAA ${RELEASE_VERSION}，基于 [UBAA](https://github.com/BUAASubnet/UBAA) 修改，提交 \`${GITHUB_SHA::8}\`。"
@@ -277,7 +277,7 @@ jobs:
           gh release create "$RELEASE_TAG" dist/* \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
-            --title "ReUBAA ${RELEASE_VERSION}（构建 ${GITHUB_RUN_NUMBER}）" \
+            --title "ReUBAA ${RELEASE_VERSION}" \
             --notes-file notes.md \
             "${flags[@]}"
           gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json url --jq .url
