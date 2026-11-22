@@ -9,7 +9,6 @@ import 'colors.dart' show ScheduleCourseColors;
 import '../../shared/schedule_values.dart' show uiScheduled;
 import '../../shared/text.dart' show uiNonBlank;
 import '../../theme.dart' show UbaaTheme;
-import '../../theme.dart' show UbaaTheme;
 import '../../shared/layout/seven_day_grid.dart';
 
 /// 冻结旧版的七日节次网格；时间缺失或冲突不造成课程丢失。

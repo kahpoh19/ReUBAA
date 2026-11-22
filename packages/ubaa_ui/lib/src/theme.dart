@@ -375,7 +375,6 @@ class UbaaTheme {
     final text = dark ? Colors.white : Colors.black;
     final summary = dark ? const Color(0xFF8C8C8C) : const Color(0xFF8A8A8A);
     final fill = dark ? const Color(0xFF2E2E2E) : const Color(0xFFF0F0F0);
-    final line = dark ? const Color(0xFF2B2B2B) : const Color(0xFFEDEDED);
     final tinted = Color.alphaBlend(
       primary.withValues(alpha: dark ? .24 : .12),
       card,
