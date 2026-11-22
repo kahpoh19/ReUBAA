@@ -6,7 +6,11 @@ export 'app/app_service/notices.dart'
         uiShowReleaseNotes,
         uiShowUpdateRequired;
 export 'app/app_service/privacy.dart'
-    show PrivacyConsentDialog, PrivacyPolicyPage, uiPrivacyConsentRoute;
+    show
+        PrivacyConsentDialog,
+        PrivacyPolicyPage,
+        uiPrivacyConsentRoute,
+        uiShowPrivacyAgreement;
 export 'app/app_service/settings.dart' show AppServiceControls;
 export 'app/settings/notification_settings.dart' show UiNotificationControls;
 export 'app/settings/auto_signin_settings.dart' show UiAutoSigninControls;

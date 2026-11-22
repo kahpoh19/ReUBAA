@@ -4,12 +4,12 @@
 
 项目自有目录统一用下划线分隔单词，例如 `crates/ubaa_core`、`crates/ubaa_flutter_bridge`、`scripts/live/offline_startup`。新目录也遵循这条规则。文件名、Cargo 包名、发布名称、命令名和外部链接不属于目录命名，不随目录迁移改名。
 
+测试临时文件放在 `target/test_tmp/<测试套件>/<运行>/`。每次运行创建独立目录，并在测试结束时只清理自己的目录。可通过 `UBAA_TEST_TMP` 指定根目录；CI 将其设为 `$RUNNER_TEMP/ubaa_test_tmp`，避免临时文件进入 Rust 缓存。
+
 以下路径保留原名：
 
-- `examples/` 是固定提交的只读参考源码。
 - `packages/ubaa_bindings/cargokit/` 是第三方工具源码。
 - Android 的 `res/drawable-v21`、`res/mipmap-hdpi` 等资源限定目录由框架识别。
-- `docs/design/evidence/ui-ux/` 是历史证据归档，其目录名对应仓库外原图和原哈希清单。新增自有代码或新证据批次不得借此例外继续使用连字符目录。
 
 `just layout-check` 检查 Git 跟踪文件和非忽略的新文件所在目录。`just script-test` 验证规则，确保例外不会扩展到同级自有目录或资源目录中的任意子目录。构建缓存、临时目录、其他 worktree 和仓库外材料不在检查范围内。
 

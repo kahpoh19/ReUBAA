@@ -6,7 +6,7 @@
 
 - 修改 `docs/site/` 下的用户说明、公告、隐私政策或更新日志。
 - 修改网站导航、主题或 VitePress 配置。
-- 配置或排查文档站的 服务器部署。
+- 配置或排查文档站的服务器部署。
 
 ## 前提
 
@@ -37,7 +37,7 @@ npm run docs:preview
 
 ### 部署到服务器
 
-正式站点为 `https://www.ubaa.top`。Nginx 从 `/srv/ubaa/docs/current` 提供 VitePress 静态文件，Cloudflare CDN 通过 HTTPS 10443 回源，并严格校验证书。HTML 缓存 300 秒，带内容摘要的静态资源缓存一年，并跨版本保留在服务器的共享 assets 目录，供缓存中的旧页面继续读取。下载会话页和发布信息不缓存。
+正式站点为 `https://www.ubaa.top`。Nginx 从 `/srv/ubaa/docs/current` 提供 VitePress 静态文件，Cloudflare CDN 通过 HTTPS 10443 回源，并严格校验证书。HTML 缓存 300 秒，带内容摘要的静态资源缓存一年，并跨版本保留在服务器的共享 assets 目录，供缓存中的旧页面继续读取。`/downloads/` 下的下载会话禁止缓存。公开安装包清单 `/release-data.json` 的成功响应缓存 60 秒。
 
 [文档工作流](../../.github/workflows/docs.yml)在 dev 的站点相关改动或 dev 手动触发时构建并部署，PR 只构建。`docs-production` 只允许 dev，保存专用部署密钥 `UBAA_DEPLOY_KEY` 和固定主机公钥 `UBAA_DEPLOY_HOST_KEYS`。
 
@@ -58,7 +58,7 @@ Actions 保存静态网站 artifact，再通过 SSH 发送本次运行的临时�
 
 开发检查、合并验收、文档部署和应用服务部署分别维护，原生矩阵由合并验收复用；完整范围见[当前 CI 的实际范围](../development/commands.md#当前-ci-的实际范围)。
 
-GitHub 可能保留源码中已删除工作流的历史入口。移除入口前，先确认它没有在途运行或当前调用方，再清理对应的旧运行记录；保留当前发布候选的检查、构建关联与发布资产。GitHub 自动创建的 Copilot 等入口可能在功能再次使用时出现。
+GitHub 可能保留源码中已删除工作流的历史入口。移除入口前，先确认它没有在途运行或当前调用方，再清理对应的旧运行记录；保留当前发布候选的检查、构建关联与发布资产。GitHub 自动创建的 自动创建的入口可能在功能再次使用时出现。
 
 ## 依据
 

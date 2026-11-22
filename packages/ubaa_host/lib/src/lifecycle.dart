@@ -18,6 +18,7 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
       widget.startupDiagnostics ?? _newStartupDiagnostics(_preferences);
   ({UiError error, DiagnosticInitializationStage stage})? _startupFailure;
   int _startupGeneration = 0;
+  bool _privacyAccepted = false;
   void _updateStartup(VoidCallback update) {
     if (mounted) setState(update);
   }
@@ -312,6 +313,7 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
     _readyController = AppController(
       diagnostics: _diagnostics,
       backend: opened,
+      privacyAccepted: false,
       backendFactory: backend == null ? backendFactory : null,
       credentialVault: widget.credentialVault,
       localAccountStore: widget.localAccountStore,
@@ -401,9 +403,7 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
         unawaited(_controller.refreshAppBootstrap());
       });
     }
-    unawaited(_controller.initialize());
-    unawaited(_attemptAppService(force: true, startup: true));
-    unawaited(_controller.refreshAppBootstrap(force: true));
+    unawaited(_initializeWithPrivacy());
   }
 
   @override

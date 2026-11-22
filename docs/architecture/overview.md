@@ -29,7 +29,7 @@ flowchart TD
 
 - 所有生产调用都经过 Core facade。Dart 和平台宿主不读取 Core 内部状态，不拼接学校 URL，也不处理原始响应。
 - GUI 和桌面命令模式复用同一套应用服务实现。每个进程持有自己的客户端与资源，通过共同的资料空间和持久状态协调账号与数据，设计见[桌面共享状态](../design/desktop-shared-state.md)。
-- 应用服务（遥测、更新、公告）的 Cloudflare Worker 不在图中，它与学校服务无关，见[应用服务合同](../contracts/app-service.md)。
+- 应用服务（遥测、更新、公告）由独立的 Node.js 服务提供，未在图中列出，它与学校服务无关，见[应用服务合同](../contracts/app-service.md)。
 
 ## 各层职责
 
@@ -89,8 +89,8 @@ flowchart TD
 | 某个业务的协议实现 | `crates/ubaa_core/src/features/<领域>/` |
 | 界面组件 | `packages/ubaa_ui/lib/src/features/<领域>/` |
 
-改动前先读对应领域的[合同](../contracts/)；认证、读取或写入改动还要遵守 [AGENTS 来源对照门禁](../../AGENTS.md#来源对照门禁)。
+改动前先读对应领域的[合同](../contracts/)；认证、读取或写入改动还要遵守[协议依据目录](../protocol/README.md)。
 
 ## 证据的独立性
 
-实现、确定性测试、原生合成测试、Core-live、真实 App、设备和正式发布是相互独立的证据，一种通过不能代替另一种。当前结果见[状态页](../project/status.md)，旧版架构说明见[归档](../archive/history/architecture-before-maintainability-2026-10-07.md)。
+实现、确定性测试、原生合成测试、Core-live、真实 App、设备和正式发布是相互独立的证据，一种通过不能代替另一种。当前结果见[项目现状](../project/status.md)。

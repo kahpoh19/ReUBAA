@@ -11,8 +11,8 @@
 | 提交第一个 PR | [贡献指南](../CONTRIBUTING.md) |
 | 知道该跑哪些检查 | [开发命令](development/commands.md) |
 | 看懂文档里的术语 | [术语表](development/glossary.md) |
-| 了解项目进展 | [项目现状](project/status.md)、[当前目标](project/goal.md)、[路线图](project/roadmap.md) |
-| 修改校园协议 | 先读 [AGENTS.md 来源对照门禁](../AGENTS.md#来源对照门禁)，再到[协议依据](protocol/README.md)找对应功能 |
+| 了解项目进展 | [项目现状](project/status.md)、[路线图](project/roadmap.md) |
+| 修改校园协议 | 先读[协议依据目录](protocol/README.md)，再到[协议依据](protocol/README.md)找对应功能 |
 
 ## 按修改内容定位代码
 
@@ -27,7 +27,7 @@
 | 功能页面 | [UI features](../packages/ubaa_ui/lib/src/features/) | [UI 领域测试](../packages/ubaa_ui/test/features/) |
 | 导航、查询与通用展示 | [UI app](../packages/ubaa_ui/lib/src/app/)、[common](../packages/ubaa_ui/lib/src/common/) | [query](../packages/ubaa_ui/test/query/)、[navigation](../packages/ubaa_ui/test/navigation/)、[visual](../packages/ubaa_ui/test/visual/) |
 | 平台能力与宿主接线 | [Host](../packages/ubaa_host/lib/)、[Platform](../packages/ubaa_platform/lib/) | 各包测试；[原生能力清单](../scripts/integration-tests.json)与[覆盖边界](development/testing.md) |
-| 应用服务 Worker | [services/app_service](../services/app_service/) | Worker 测试，见[应用服务手册](runbooks/app-service.md) |
+| 应用服务 | [services/app_service](../services/app_service/) | 应用服务测试，见[应用服务手册](runbooks/app-service.md) |
 
 ## 文档目录
 
@@ -41,8 +41,7 @@
 | [design/](design/) | 现行产品与界面规格 | 贡献者 |
 | [runbooks/](runbooks/) | 操作手册：签名、发布、部署、真实验证、本地诊断 | 维护者 |
 | [project/](project/) | 当前目标、路线图、项目现状 | 维护者 |
-| [protocol/](protocol/README.md) | 协议来源对照、冻结参考、决策记录 | 改协议的开发者与 agent |
-| [archive/](archive/README.md) | 已被取代的计划、状态快照和验收证据，只用于追溯 | 追溯历史时 |
+| [protocol/](protocol/README.md) | 协议来源对照、决策记录 | 改协议的开发者与 agent |
 
 写文档前请读[文档规范](development/conventions.md#文档规范)。
 
@@ -57,5 +56,6 @@
 | [0005](adr/0005-flutter-frb-six-platforms.md) | Flutter + FRB 六平台宿主 |
 | [0006](adr/0006-explicit-dart-modules.md) | 显式 Dart 模块 |
 | [0007](adr/0007-operation-scopes-and-verification.md) | 操作作用域与验证闭包 |
-| [0008](adr/0008-app-service-worker.md) | 应用服务 Worker |
+| [0008](adr/0008-internal-state-ownership.md) | 应用活动、恢复结果与内部流程状态的所有权 |
 | [0009](adr/0009-minute-telemetry-counts.md) | 登录与功能加载的匿名分钟级计数 |
+| [0010](adr/0010-app-service-worker.md) | 应用服务 Worker |

@@ -113,7 +113,7 @@ class _AboutViewState extends State<AboutView> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '北航校园生活助手 · 基于开源项目 UBAA 修改',
+                          '校园生活助手 · 基于开源项目 UBAA 修改',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
