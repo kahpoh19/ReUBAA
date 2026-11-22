@@ -19,7 +19,7 @@ void main() {
     await tester.pumpWidget(_host(information));
     await tester.pumpAndSettle();
 
-    final link = find.text('开源项目: github.com/kahpoh19/UBAA');
+    final link = find.text('开源项目: github.com/kahpoh19/ReUBAA');
     await tester.ensureVisible(link);
     await tester.tap(link);
     await tester.pumpAndSettle();
@@ -209,7 +209,7 @@ void main() {
     await tester.pumpWidget(_host(information, backend: backend));
     await tester.pumpAndSettle();
     await _fillLogin(tester);
-    final link = find.text('开源项目: github.com/kahpoh19/UBAA');
+    final link = find.text('开源项目: github.com/kahpoh19/ReUBAA');
     await tester.ensureVisible(link);
     await tester.tap(link);
     await tester.pumpAndSettle();
@@ -249,7 +249,7 @@ void main() {
     await tester.pumpWidget(_host(information, backend: backend));
     await tester.pumpAndSettle();
     await _fillLogin(tester);
-    final link = find.text('开源项目: github.com/kahpoh19/UBAA');
+    final link = find.text('开源项目: github.com/kahpoh19/ReUBAA');
     await tester.ensureVisible(link);
     await tester.tap(link);
     await tester.pump();
@@ -277,7 +277,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('记住密码'));
     await tester.tap(find.text('自动登录'));
-    await tester.tap(find.text('开源项目: github.com/kahpoh19/UBAA'));
+    await tester.tap(find.text('开源项目: github.com/kahpoh19/ReUBAA'));
     await tester.pump();
 
     expect(tester.widget<Checkbox>(find.byType(Checkbox).first).value, isFalse);

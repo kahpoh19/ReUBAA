@@ -22,7 +22,7 @@ class UbaaSplashView extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Make BUAA Great Again',
+              'Make UBAA Great Again',
               style: textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w500,
                 color: textTheme.bodyLarge?.color?.withValues(alpha: 0.8),

@@ -4,14 +4,14 @@
 
 # ReUBAA
 
-**基于 [UBAA](https://github.com/BUAASubnet/UBAA) 的个人修改版**
+**Make UBAA Great Again!**
 
-在原版课表、作业、成绩、选课、预约、日程和云盘的基础上，加了几项自己常用的功能。
+基于 [UBAA](https://github.com/BUAASubnet/UBAA) 的个人修改版，在原版课表、作业、成绩、选课、预约、日程和云盘的基础上，加了几项自己常用的功能。
 
 [![许可证](https://img.shields.io/badge/%E8%AE%B8%E5%8F%AF%E8%AF%81-MIT-2fb67c)](LICENSE)
 ![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20HarmonyOS%20%7C%20Desktop-2fb67c.svg?style=flat)
 
-[原版项目](https://github.com/BUAASubnet/UBAA) · [原版使用指南](https://www.ubaa.top) · [问题反馈](https://github.com/kahpoh19/UBAA/issues)
+[原版项目](https://github.com/BUAASubnet/UBAA) · [原版使用指南](https://www.ubaa.top) · [问题反馈](https://github.com/kahpoh19/ReUBAA/issues)
 
 </div>
 
@@ -44,7 +44,7 @@
 - 🔔 **课程与待办通知**：设置页“通知”分组里分别开关，默认关闭。课程提醒默认课前 10、30 分钟，待办提醒默认截止前 4 小时、1 天，都可以勾选其他档位或自定义。
 - 🎨 **Miuix 界面风格**：设置里「界面风格」可以在原来的 Material 和仿 HyperOS 的 Miuix 之间切换：浅灰页面、白色无边框卡片，深色模式为纯黑背景。
 
-ReUBAA 包名为 `cn.edu.reubaa`，可以和原版 UBAA 同时安装。新功能有问题欢迎在[本仓库](https://github.com/kahpoh19/UBAA/issues)反馈。其余内容沿用原版说明。
+ReUBAA 包名为 `cn.edu.reubaa`，可以和原版 UBAA 同时安装。新功能有问题欢迎在[本仓库](https://github.com/kahpoh19/ReUBAA/issues)反馈。其余内容沿用原版说明。
 
 ## 快速开始
 

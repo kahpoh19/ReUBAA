@@ -4,7 +4,7 @@
 library;
 
 /// 本仓库的 Releases 页面，不能应用内安装时打开这里。
-const appReleasesUrl = 'https://github.com/kahpoh19/UBAA/releases/latest';
+const appReleasesUrl = 'https://github.com/kahpoh19/ReUBAA/releases/latest';
 
 /// Release 里的一个安装包。
 final class AppReleaseAsset {

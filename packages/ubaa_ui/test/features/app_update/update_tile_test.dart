@@ -9,7 +9,7 @@ final _release = AppRelease(
   title: 'ReUBAA 1.2.0',
   notes: '修复了一些问题',
   page: Uri.parse(
-    'https://github.com/kahpoh19/UBAA/releases/tag/reubaa-v1.2.0',
+    'https://github.com/kahpoh19/ReUBAA/releases/tag/reubaa-v1.2.0',
   ),
   asset: AppReleaseAsset(
     name: 'ReUBAA-1.2.0-android-arm64-v8a.apk',

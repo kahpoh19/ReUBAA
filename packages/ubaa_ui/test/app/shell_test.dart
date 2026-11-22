@@ -10,7 +10,7 @@ void _registerShellTests() {
     );
 
     expect(find.text('ReUBAA'), findsOneWidget);
-    expect(find.text('Make BUAA Great Again'), findsOneWidget);
+    expect(find.text('Make UBAA Great Again'), findsOneWidget);
 
     await tester.pumpWidget(
       MaterialApp(

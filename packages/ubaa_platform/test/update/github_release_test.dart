@@ -6,7 +6,7 @@ Map<String, Object?> _release({String? name = 'ReUBAA 1.2.0'}) => {
   'tag_name': 'reubaa-v1.2.0',
   'name': name,
   'body': '安装说明',
-  'html_url': 'https://github.com/kahpoh19/UBAA/releases/tag/reubaa-v1.2.0',
+  'html_url': 'https://github.com/kahpoh19/ReUBAA/releases/tag/reubaa-v1.2.0',
   'assets': [
     for (final abi in ['arm64-v8a', 'armeabi-v7a', 'x86_64'])
       {
@@ -30,7 +30,7 @@ void main() {
     expect(release.notes, '安装说明');
     expect(release.asset?.name, 'ReUBAA-1.2.0-android-armeabi-v7a.apk');
     expect(release.asset?.size, 40000000);
-    expect(release.page.path, '/kahpoh19/UBAA/releases/tag/reubaa-v1.2.0');
+    expect(release.page.path, '/kahpoh19/ReUBAA/releases/tag/reubaa-v1.2.0');
   });
 
   test('没有架构或没有对应 APK 时不给安装包，标题为空时用 Tag', () {

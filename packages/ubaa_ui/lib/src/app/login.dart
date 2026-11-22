@@ -325,7 +325,7 @@ class _UbaaLoginViewState extends State<UbaaLoginView> {
                                   vertical: 8,
                                 ),
                                 child: Text(
-                                  '开源项目: github.com/kahpoh19/UBAA',
+                                  '开源项目: github.com/kahpoh19/ReUBAA',
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: Theme.of(

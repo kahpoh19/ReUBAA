@@ -17,7 +17,7 @@ final class GithubAppUpdater implements AppUpdater {
       canInstall = android ?? Platform.isAndroid;
 
   static final latestApi = Uri.parse(
-    'https://api.github.com/repos/kahpoh19/UBAA/releases/latest',
+    'https://api.github.com/repos/kahpoh19/ReUBAA/releases/latest',
   );
 
   final MethodChannel _channel;

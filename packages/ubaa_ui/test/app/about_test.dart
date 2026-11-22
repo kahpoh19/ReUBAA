@@ -84,7 +84,7 @@ void main() {
     expect(find.text(AppLink.feedback.url), findsOneWidget);
     await tester.tap(find.text('复制地址'));
     await tester.pumpAndSettle();
-    expect(clipboard, 'https://github.com/kahpoh19/UBAA/issues');
+    expect(clipboard, 'https://github.com/kahpoh19/ReUBAA/issues');
   });
 
   testWidgets('关于离开后迟到外链失败不弹回旧页且在途不重复打开', (tester) async {
