@@ -1,6 +1,7 @@
 import '../../shared/schedule_values.dart' show uiWeekdays;
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../common/section.dart' show UiChevron;
 import 'package:ubaa_domain/ubaa_domain.dart';
 import '../../shared/dialogs/sheet.dart';
 
@@ -24,7 +25,7 @@ Future<void> uiShowScheduleGroup(
             subtitle: Text(
               '第${p.beginSection}–${p.endSection}节 · ${uiNonBlank(p.place) ?? '地点待公布'}',
             ),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const UiChevron(),
             onTap: () => uiShowScheduleDetails(context, detail),
           ),
     ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme.dart';
 
 /// 页面内分区标题；页面顶层标题用 headlineSmall 粗体，卡片标题用 titleMedium。
 class UiSectionTitle extends StatelessWidget {
@@ -7,22 +8,34 @@ class UiSectionTitle extends StatelessWidget {
   final Widget? action;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: 8, bottom: 12),
-    child: Row(
-      children: [
-        Expanded(
-          child: Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    // Miuix 的分组标题是卡片上方一行灰色小字，和卡片里的文字左缘对齐。
+    final miuix = UbaaTheme.miuix(context);
+    return Padding(
+      padding: miuix
+          ? const EdgeInsets.fromLTRB(16, 12, 0, 8)
+          : const EdgeInsets.only(top: 8, bottom: 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: miuix
+                  ? theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    )
+                  : theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+            ),
           ),
-        ),
-        if (action != null) action!,
-      ],
-    ),
-  );
+          if (action != null) action!,
+        ],
+      ),
+    );
+  }
 }
 
 /// 概览页（首页等）的大分节标题：标题、可选说明与右侧动作。
@@ -118,6 +131,8 @@ class UiEntryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final grouped = _UiEntryGrouped.of(context);
+    // Miuix 的图标是实心强调色圆角块配白色图标，右侧是细箭头。
+    final miuix = UbaaTheme.miuix(context);
     final tile = InkWell(
       onTap: onTap,
       // 紧凑内边距：手机单列时学习页八个入口无需滚动即可看全。
@@ -132,10 +147,16 @@ class UiEntryCard extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer,
+                color: miuix
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, size: 24, color: theme.colorScheme.primary),
+              child: Icon(
+                icon,
+                size: miuix ? 22 : 24,
+                color: miuix ? Colors.white : theme.colorScheme.primary,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -162,8 +183,8 @@ class UiEntryCard extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Icon(
-              Icons.chevron_right,
-              size: 20,
+              miuix ? Icons.arrow_forward_ios : Icons.chevron_right,
+              size: miuix ? 14 : 20,
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ],
@@ -285,4 +306,18 @@ class UiAdaptiveGrid extends StatelessWidget {
       );
     },
   );
+}
+
+/// 列表行末尾表示“进入”的箭头；Miuix 风格换成细一点的小箭头。
+class UiChevron extends StatelessWidget {
+  const UiChevron({super.key});
+
+  @override
+  Widget build(BuildContext context) => UbaaTheme.miuix(context)
+      ? Icon(
+          Icons.arrow_forward_ios,
+          size: 14,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        )
+      : const Icon(Icons.chevron_right);
 }

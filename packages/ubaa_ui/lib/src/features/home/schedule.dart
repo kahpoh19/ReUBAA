@@ -5,7 +5,7 @@ import '../../shared/schedule_values.dart';
 import '../../shared/text.dart';
 import '../../common/state_panel.dart';
 import '../../common/tag.dart';
-import '../../common/section.dart' show UiSectionHeader;
+import '../../common/section.dart' show UiChevron, UiSectionHeader;
 
 typedef HomeScheduleRoute = ({String label, ConnectionMode? route});
 
@@ -117,7 +117,7 @@ class HomeScheduleSection extends StatelessWidget {
                     ? '课表暂未加载完整'
                     : '暂无课程安排',
               ),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const UiChevron(),
               onTap: onOpenSchedule,
             ),
           ),

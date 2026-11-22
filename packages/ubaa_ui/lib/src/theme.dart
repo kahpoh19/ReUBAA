@@ -55,6 +55,19 @@ enum UbaaUiStyle {
       values.asNameMap()[name] ?? UbaaUiStyle.material;
 }
 
+/// 挂在主题上的界面风格，组件据此决定是否换成 Miuix 的写法。
+@immutable
+class UbaaStyleTheme extends ThemeExtension<UbaaStyleTheme> {
+  const UbaaStyleTheme(this.style);
+  final UbaaUiStyle style;
+  @override
+  UbaaStyleTheme copyWith({UbaaUiStyle? style}) =>
+      UbaaStyleTheme(style ?? this.style);
+  @override
+  UbaaStyleTheme lerp(UbaaStyleTheme? other, double t) =>
+      t < .5 ? this : other ?? this;
+}
+
 /// 设备外观偏好与修改回调：宿主持有并保存，设置页只展示和回调。
 @immutable
 class UiAppearanceSettings {
@@ -139,6 +152,10 @@ class UbaaTheme {
   static Color insetFill(ColorScheme colors) =>
       colors.onSurface.withValues(alpha: .05);
 
+  /// 当前主题是不是 Miuix 风格。
+  static bool miuix(BuildContext context) =>
+      Theme.of(context).extension<UbaaStyleTheme>()?.style == UbaaUiStyle.miuix;
+
   static double pagePadding(double width) => width < 600
       ? 16
       : width < 1000
@@ -150,7 +167,9 @@ class UbaaTheme {
     double? top,
     double? bottom,
   }) {
-    final gutter = pagePadding(MediaQuery.sizeOf(context).width);
+    final width = MediaQuery.sizeOf(context).width;
+    // Miuix 的卡片离屏幕边 12，比 Material 窄一点。
+    final gutter = miuix(context) && width < 600 ? 12.0 : pagePadding(width);
     return EdgeInsets.fromLTRB(gutter, top ?? gutter, gutter, bottom ?? gutter);
   }
 
@@ -402,14 +421,25 @@ class UbaaTheme {
         );
     return ThemeData(
       adaptations: [_AppleSwitchAdaptation(primary)],
+      extensions: const [UbaaStyleTheme(UbaaUiStyle.miuix)],
       useMaterial3: true,
       fontFamily: debugFontFamily,
       colorScheme: colors,
       scaffoldBackgroundColor: page,
       visualDensity: VisualDensity.standard,
-      dividerTheme: DividerThemeData(color: line, thickness: 1),
+      // HyperOS 点按没有水波纹，只把按下的区域压暗一点。
+      splashFactory: NoSplash.splashFactory,
+      highlightColor: text.withValues(alpha: dark ? .10 : .06),
+      // 卡片里的列表项之间不画分隔线，靠留白区分。
+      dividerTheme: const DividerThemeData(
+        color: Colors.transparent,
+        thickness: 0,
+      ),
+      // 底栏和页面同色，选中项只加深颜色，没有指示条。
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: card,
+        backgroundColor: page,
+        surfaceTintColor: Colors.transparent,
+        height: 64,
         indicatorColor: Colors.transparent,
         elevation: 0,
         iconTheme: WidgetStateProperty.resolveWith(
@@ -439,10 +469,76 @@ class UbaaTheme {
         side: BorderSide.none,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
+      // HyperOS 的对话框贴在屏幕下方，四周留 12，标题居中加粗。
       dialogTheme: DialogThemeData(
         backgroundColor: card,
+        surfaceTintColor: Colors.transparent,
+        alignment: Alignment.bottomCenter,
+        insetPadding: const EdgeInsets.fromLTRB(12, 24, 12, 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+        titleTextStyle: TextStyle(
+          fontFamily: debugFontFamily,
+          color: text,
+          fontSize: 19,
+          fontWeight: FontWeight.w600,
+        ),
+        contentTextStyle: TextStyle(
+          fontFamily: debugFontFamily,
+          color: text,
+          fontSize: 16,
+          height: 1.4,
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: primary,
+        foregroundColor: Colors.white,
+        shape: const CircleBorder(),
+        elevation: 3,
+        focusElevation: 3,
+        hoverElevation: 4,
+        highlightElevation: 2,
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: primary,
+        linearTrackColor: fill,
+        circularTrackColor: Colors.transparent,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: dark
+            ? const Color(0xFF333333)
+            : const Color(0xFF303030),
+        contentTextStyle: TextStyle(
+          fontFamily: debugFontFamily,
+          color: Colors.white,
+          fontSize: 14,
+        ),
+        shape: controlShape,
+      ),
+      // 页内切换做成药丸：选中项浅色强调底，没有下划线。
+      tabBarTheme: TabBarThemeData(
+        dividerColor: Colors.transparent,
+        indicatorSize: TabBarIndicatorSize.tab,
+        indicator: BoxDecoration(
+          color: tinted,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        labelColor: primary,
+        unselectedLabelColor: summary,
+        labelStyle: TextStyle(
+          fontFamily: debugFontFamily,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontFamily: debugFontFamily,
+          fontSize: 15,
+        ),
+        overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+      ),
+      radioTheme: RadioThemeData(fillColor: pick(primary, summary)),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: card,
         modalBackgroundColor: card,
@@ -472,6 +568,8 @@ class UbaaTheme {
         overlayColor: const WidgetStatePropertyAll(Colors.transparent),
         splashRadius: 0,
         thumbColor: const WidgetStatePropertyAll(Colors.white),
+        // 带了图标的开关圆钮开关时一样大，不像 Material 关着时缩小。
+        thumbIcon: const WidgetStatePropertyAll(Icon(null)),
         trackColor: pick(
           primary,
           dark ? const Color(0xFF4A4A4A) : const Color(0xFFE6E6E6),
@@ -489,8 +587,10 @@ class UbaaTheme {
         subtitleTextStyle: TextStyle(
           fontFamily: debugFontFamily,
           color: summary,
-          fontSize: 13,
+          fontSize: 14,
         ),
+        iconColor: summary,
+        minVerticalPadding: 12,
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -550,11 +650,13 @@ class UbaaTheme {
           minimumSize: const Size(48, 48),
         ),
       ),
+      // 分段选择：浅灰底，选中项浅色强调底、强调色字。
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: SegmentedButton.styleFrom(
           backgroundColor: fill,
-          selectedBackgroundColor: card,
-          selectedForegroundColor: text,
+          foregroundColor: text,
+          selectedBackgroundColor: tinted,
+          selectedForegroundColor: primary,
           side: BorderSide.none,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

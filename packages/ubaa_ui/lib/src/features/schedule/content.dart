@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
+import '../../common/section.dart' show UiChevron;
 import 'package:ubaa_domain/ubaa_domain.dart';
 import 'detail.dart' show uiShowScheduleDetails, uiShowScheduleGroup;
 import 'flow.dart' show ScheduleWeekScope;
@@ -282,7 +283,7 @@ class _ScheduleContentState extends State<ScheduleContent> {
                                           ) ??
                                           '地点待公布',
                                     ),
-                                    trailing: const Icon(Icons.chevron_right),
+                                    trailing: const UiChevron(),
                                     onTap: () =>
                                         uiShowScheduleDetails(context, detail),
                                   ),
