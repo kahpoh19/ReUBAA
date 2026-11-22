@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ubaa_domain/ubaa_domain.dart';
+import 'package:ubaa_ui/src/features/app_update/banner.dart';
 import 'package:ubaa_ui/src/features/app_update/update_tile.dart';
 
 final _release = AppRelease(
@@ -20,21 +21,35 @@ final _release = AppRelease(
 
 /// 假的更新源，下载进度由测试一步步推进。
 class _FakeUpdater implements AppUpdater {
-  _FakeUpdater({this.release, this.canInstall = true, this.error});
+  _FakeUpdater({
+    this.release,
+    this.canInstall = true,
+    this.error,
+    this.ignored,
+  });
   final AppRelease? release;
   final Object? error;
+  String? ignored;
   @override
   final bool canInstall;
   final opened = <AppRelease>[];
   final installs = <AppRelease>[];
+  final checks = <bool>[];
   void Function(double)? progress;
   Completer<void>? download;
 
   @override
-  Future<AppRelease?> latest() async {
+  Future<AppRelease?> latest({bool cached = false}) async {
+    checks.add(cached);
     if (error case final error?) throw error;
     return release;
   }
+
+  @override
+  Future<String?> ignoredVersion() async => ignored;
+
+  @override
+  Future<void> ignore(String version) async => ignored = version;
 
   @override
   Future<void> install(
@@ -82,7 +97,7 @@ void main() {
     expect(find.byKey(const ValueKey('app-update-dialog')), findsNothing);
   });
 
-  testWidgets('有新版本时弹出说明，安卓下载时显示进度并调起安装器', (tester) async {
+  testWidgets('有新版本时弹出说明，安卓下载时显示进度，系统要求确认时提示', (tester) async {
     final updater = _FakeUpdater(release: _release);
     await _pump(tester, updater);
     await tester.tap(find.text('检查更新'));
@@ -98,10 +113,14 @@ void main() {
     expect(find.text('正在下载 42%'), findsOneWidget);
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
 
+    updater.progress!(1);
+    await tester.pump();
+    expect(find.text('下载完成，正在安装，完成后应用会自动关闭'), findsOneWidget);
+
     updater.download!.complete();
     await tester.pumpAndSettle();
     expect(updater.installs, [_release]);
-    expect(find.text('已打开系统安装器，按提示完成更新'), findsOneWidget);
+    expect(find.text('请在系统弹出的窗口里确认安装'), findsOneWidget);
     expect(find.byType(LinearProgressIndicator), findsNothing);
   });
 
@@ -140,5 +159,54 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.textContaining('允许 ReUBAA 安装应用'), findsOneWidget);
+  });
+
+  testWidgets('首页启动时用缓存查一次，有新版本才提示，可以忽略这个版本', (tester) async {
+    Future<void> home(AppUpdater updater, {String? version = '1.1.0+2032'}) =>
+        tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: AppUpdateBanner(
+                updater: updater,
+                loadVersion: () async => version,
+              ),
+            ),
+          ),
+        );
+
+    final updater = _FakeUpdater(release: _release);
+    await home(updater);
+    await tester.pumpAndSettle();
+    expect(updater.checks, [true]);
+    expect(find.text('ReUBAA 有新版本'), findsOneWidget);
+    expect(find.text('发现新版本 1.2.0'), findsOneWidget);
+
+    // 点提示直接弹出更新说明，不用再查一次。
+    await tester.tap(find.text('ReUBAA 有新版本'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('app-update-dialog')), findsOneWidget);
+    expect(updater.checks, [true]);
+    await tester.tap(find.text('以后再说'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('忽略这个版本'));
+    await tester.pumpAndSettle();
+    expect(updater.ignored, '1.2.0');
+    expect(find.text('ReUBAA 有新版本'), findsNothing);
+
+    // 忽略过的版本、已经是最新、查询失败时都不显示。
+    for (final (quiet, version) in [
+      (_FakeUpdater(release: _release, ignored: '1.2.0'), '1.1.0'),
+      (_FakeUpdater(release: _release), '1.2.0+2040'),
+      (
+        _FakeUpdater(error: const AppUpdateException(AppUpdateFailure.network)),
+        '1.1.0',
+      ),
+    ]) {
+      await tester.pumpWidget(const SizedBox());
+      await home(quiet, version: version);
+      await tester.pumpAndSettle();
+      expect(find.text('ReUBAA 有新版本'), findsNothing);
+    }
   });
 }

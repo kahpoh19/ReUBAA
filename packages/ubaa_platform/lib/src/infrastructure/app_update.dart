@@ -6,26 +6,61 @@ import 'package:flutter/services.dart';
 import 'package:ubaa_domain/ubaa_domain.dart';
 
 import '../app_information.dart' show openExternalUrl;
+import 'preferences.dart';
 
-/// 从本仓库 GitHub Releases 检查更新。安卓下载对应架构的 APK 后交给系统安装器，
-/// 其他平台只打开 Release 页面。
+/// 从本仓库 GitHub Releases 检查更新。安卓下载对应架构的 APK 后用系统的
+/// PackageInstaller 安装，其他平台只打开 Release 页面。
 ///
 /// 只用 GitHub 公开接口，不带任何账号；未登录每小时有 60 次的查询限制。
 final class GithubAppUpdater implements AppUpdater {
-  GithubAppUpdater({MethodChannel? channel, bool? android})
-    : _channel = channel ?? const MethodChannel('cn.edu.buaa.ubaa/app-update'),
-      canInstall = android ?? Platform.isAndroid;
+  GithubAppUpdater({
+    MethodChannel? channel,
+    bool? android,
+    PreferenceValues? preferences,
+  }) : _channel = channel ?? const MethodChannel('cn.edu.buaa.ubaa/app-update'),
+       _preferences = preferences ?? PluginPreferenceValues(),
+       canInstall = android ?? Platform.isAndroid;
+
+  static const _ignoredKey = 'reubaa.update.ignored';
 
   static final latestApi = Uri.parse(
     'https://api.github.com/repos/kahpoh19/ReUBAA/releases/latest',
   );
 
   final MethodChannel _channel;
+  final PreferenceValues _preferences;
   @override
   final bool canInstall;
 
+  /// 本次运行最近一次成功查到的结果。
+  Future<AppRelease?>? _latest;
+
   @override
-  Future<AppRelease?> latest() async {
+  Future<AppRelease?> latest({bool cached = false}) {
+    final last = _latest;
+    if (cached && last != null) return last;
+    final next = _fetch();
+    _latest = next;
+    // 失败的结果不缓存，下次再查。
+    unawaited(
+      next.then<void>(
+        (_) {},
+        onError: (Object _) {
+          if (identical(_latest, next)) _latest = null;
+        },
+      ),
+    );
+    return next;
+  }
+
+  @override
+  Future<String?> ignoredVersion() => _preferences.read(_ignoredKey);
+
+  @override
+  Future<void> ignore(String version) =>
+      _preferences.write(_ignoredKey, version);
+
+  Future<AppRelease?> _fetch() async {
     final abi = canInstall ? await _channel.invokeMethod<String>('abi') : null;
     final client = HttpClient()..userAgent = 'ReUBAA';
     try {
@@ -73,7 +108,11 @@ final class GithubAppUpdater implements AppUpdater {
     directory.createSync(recursive: true);
     final file = File('${directory.path}/${asset.name}');
     await _download(asset, file, onProgress);
-    await _channel.invokeMethod<void>('install', file.path);
+    try {
+      await _channel.invokeMethod<String>('install', file.path);
+    } on PlatformException catch (error) {
+      throw AppUpdateException(AppUpdateFailure.install, error.message);
+    }
   }
 
   Future<void> _download(

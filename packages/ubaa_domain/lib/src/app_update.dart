@@ -50,17 +50,22 @@ enum AppUpdateFailure {
 
   /// 下载的文件和 Release 里写的大小不一致。
   corrupted,
+
+  /// 系统安装器拒绝了这个安装包，原因在 [AppUpdateException.detail] 里。
+  install,
 }
 
 final class AppUpdateException implements Exception {
-  const AppUpdateException(this.failure);
+  const AppUpdateException(this.failure, [this.detail]);
   final AppUpdateFailure failure;
+  final String? detail;
 
   String get message => switch (failure) {
     AppUpdateFailure.network => '连接 GitHub 失败，请检查网络后重试',
     AppUpdateFailure.rateLimited => 'GitHub 暂时限制了查询次数，请过一会再试',
     AppUpdateFailure.installPermission => '请在打开的设置页允许 ReUBAA 安装应用，返回后再点一次',
     AppUpdateFailure.corrupted => '安装包下载不完整，请重试',
+    AppUpdateFailure.install => '安装失败：${detail ?? '系统没有给出原因'}',
   };
 
   @override
@@ -69,13 +74,23 @@ final class AppUpdateException implements Exception {
 
 abstract interface class AppUpdater {
   /// 最新的正式版 Release；仓库还没有 Release 时为 null。
-  Future<AppRelease?> latest();
+  ///
+  /// [cached] 为 true 时本次运行查过就直接用上次的结果，启动时的自动检查用它，
+  /// 免得来回切换页面反复请求 GitHub。
+  Future<AppRelease?> latest({bool cached = false});
+
+  /// 首页提示里点了“忽略”的版本；没有忽略过时为 null。
+  Future<String?> ignoredVersion();
+
+  Future<void> ignore(String version);
 
   /// 能否在应用内下载并调起系统安装（目前只有安卓）。
   bool get canInstall;
 
-  /// 下载 [release] 的安装包并交给系统安装器。
+  /// 下载 [release] 的安装包并安装。
   ///
+  /// 安卓 12 起直接静默更新，装好后系统会结束当前进程，这个 Future 不会返回；
+  /// 系统要求确认时弹出系统的安装确认框，然后正常返回。
   /// [onProgress] 收到 0～1 的下载进度。
   Future<void> install(
     AppRelease release, {

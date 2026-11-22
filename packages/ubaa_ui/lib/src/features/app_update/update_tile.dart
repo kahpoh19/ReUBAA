@@ -2,10 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:ubaa_domain/ubaa_domain.dart';
 
 /// 关于页的“检查更新”：点一下查 GitHub 最新正式版，有新版本时弹出说明，
-/// 安卓在应用内下载后调起系统安装器，其他平台打开 Release 页面。
+/// 安卓在应用内下载并安装，其他平台打开 Release 页面。
 class AppUpdateTile extends StatefulWidget {
-  const AppUpdateTile({required this.updater, this.currentVersion, super.key});
+  const AppUpdateTile({
+    required this.updater,
+    this.currentVersion,
+    this.initialRelease,
+    this.title = '检查更新',
+    super.key,
+  });
   final AppUpdater updater;
+
+  /// 已经查到的新版本，首页提示用它，点一下直接弹出更新说明。
+  final AppRelease? initialRelease;
+  final String title;
 
   /// 当前安装的版本，如 `1.1.0+2032`；读不到时任何正式版都算新版本。
   final String? currentVersion;
@@ -16,12 +26,14 @@ class AppUpdateTile extends StatefulWidget {
 
 class _AppUpdateTileState extends State<AppUpdateTile> {
   bool _checking = false;
-  AppRelease? _release;
+  late AppRelease? _release = widget.initialRelease;
   bool _upToDate = false;
 
   /// 下载进度，为 null 时没在下载。
   double? _progress;
-  bool _installerOpened = false;
+
+  /// 系统要求确认安装，已经弹出了系统的确认框。
+  bool _confirming = false;
   String? _error;
 
   bool get _busy => _checking || _progress != null;
@@ -92,7 +104,7 @@ class _AppUpdateTileState extends State<AppUpdateTile> {
     }
     setState(() {
       _progress = 0;
-      _installerOpened = false;
+      _confirming = false;
       _error = null;
     });
     try {
@@ -102,7 +114,8 @@ class _AppUpdateTileState extends State<AppUpdateTile> {
           if (mounted) setState(() => _progress = value);
         },
       );
-      if (mounted) setState(() => _installerOpened = true);
+      // 静默安装成功时进程会被系统结束，走到这里说明系统弹了确认框。
+      if (mounted) setState(() => _confirming = true);
     } on Object catch (error) {
       if (mounted) setState(() => _error = _describe(error));
     } finally {
@@ -124,10 +137,12 @@ class _AppUpdateTileState extends State<AppUpdateTile> {
     final subtitle = _checking
         ? '正在检查…'
         : progress != null
-        ? '正在下载 ${(progress * 100).floor()}%'
+        ? progress >= 1
+              ? '下载完成，正在安装，完成后应用会自动关闭'
+              : '正在下载 ${(progress * 100).floor()}%'
         : _error ??
-              (_installerOpened
-                  ? '已打开系统安装器，按提示完成更新'
+              (_confirming
+                  ? '请在系统弹出的窗口里确认安装'
                   : release != null
                   ? '发现新版本 ${release.version}'
                   : _upToDate
@@ -137,7 +152,7 @@ class _AppUpdateTileState extends State<AppUpdateTile> {
       key: const ValueKey('app-update-tile'),
       enabled: !_busy,
       leading: const Icon(Icons.system_update_outlined),
-      title: const Text('检查更新'),
+      title: Text(widget.title),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

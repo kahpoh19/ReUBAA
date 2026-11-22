@@ -186,6 +186,14 @@ extension UbaaShellNavigation on _UbaaMainShellState {
               },
             ),
       appNotices: widget.appNotices,
+      appUpdateNotice: switch (widget.appUpdater) {
+        final updater? => AppUpdateBanner(
+          key: const ValueKey('home-app-update-banner'),
+          updater: updater,
+          loadVersion: widget.onLoadAppVersion,
+        ),
+        null => null,
+      },
       gradeScoreNotice: widget.gradeScoreNotice,
       gradeCheckRoute: widget.gradeCheckRoute,
       onOpenGradeNotice: _openGradeNotice,

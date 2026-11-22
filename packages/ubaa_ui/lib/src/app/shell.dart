@@ -13,6 +13,7 @@ import '../shared/tab_navigation.dart'
 import '../features/ihome/view.dart';
 import '../features/health_cloud/view.dart';
 import '../features/finance/view.dart';
+import '../features/app_update/banner.dart' show AppUpdateBanner;
 import '../features/mail/view.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';

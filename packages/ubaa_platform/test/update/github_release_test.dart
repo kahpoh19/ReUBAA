@@ -48,4 +48,19 @@ void main() {
     expect(appVersionNewer('1.1.0', '1.1.0+2032'), isFalse);
     expect(appVersionNewer('1.0.9', '1.1.0'), isFalse);
   });
+
+  test('忽略的版本存在普通偏好里', () async {
+    final preferences = MemoryPreferenceValues();
+    final updater = GithubAppUpdater(android: false, preferences: preferences);
+    expect(await updater.ignoredVersion(), isNull);
+    await updater.ignore('1.2.0');
+    expect(await updater.ignoredVersion(), '1.2.0');
+    expect(
+      await GithubAppUpdater(
+        android: false,
+        preferences: preferences,
+      ).ignoredVersion(),
+      '1.2.0',
+    );
+  });
 }

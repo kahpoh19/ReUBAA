@@ -32,6 +32,7 @@ class HomeView extends StatefulWidget {
     this.onOpenGradeNotice,
     this.onDismissGradeNotice,
     this.writeReadbackNotice,
+    this.appUpdateNotice,
     this.appNotices,
     this.homeClock,
     this.onViewAllTodos,
@@ -55,6 +56,9 @@ class HomeView extends StatefulWidget {
   /// 今日课表和明日课表之间手动切换。
   final VoidCallback? onToggleScheduleDay;
   final Widget? writeReadbackNotice;
+
+  /// 启动时自动检查到的新版本提示，排在最前。
+  final Widget? appUpdateNotice;
 
   /// 应用服务的更新与公告横幅，排在首页最前。
   final AppServiceNotices? appNotices;
@@ -351,6 +355,7 @@ class HomeViewState extends State<HomeView> {
         key: const ValueKey('home-scroll'),
         padding: UbaaTheme.pageInsets(context, top: 8),
         children: [
+          ?widget.appUpdateNotice,
           if (widget.appNotices case final notices? when !notices.isEmpty)
             AppServiceNoticeList(notices: notices),
           if (widget.writeReadbackNotice case final notice?) ...[
