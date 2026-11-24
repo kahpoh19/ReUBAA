@@ -28,4 +28,4 @@ export 'common/error_card.dart'
 export 'features/cgyy/lock_display.dart' show UbaaCgyyLockDisplayView;
 export 'write/confirmation.dart' show WriteConfirmationView;
 
-export 'features/agenda/format.dart' show AgendaAccess;
+export 'features/agenda/format.dart' show AgendaAccess, AgendaViewMode;

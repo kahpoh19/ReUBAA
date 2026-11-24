@@ -72,12 +72,16 @@ class AgendaMonthCalendar extends StatelessWidget {
     required this.onSelected,
     this.today,
     this.colorOf,
+    this.weekOf,
   });
   final DateTime date;
   final DateTime? today;
   final List<AgendaEntry> entries;
   final ValueChanged<DateTime> onSelected;
   final Color Function(AgendaEntry)? colorOf;
+
+  /// 某天是第几教学周。给了且这个月里有周次时，左边多一窄列标出每行是第几周。
+  final int? Function(DateTime day)? weekOf;
   @override
   Widget build(BuildContext context) {
     final first = agendaWeekStart(DateTime.utc(date.year, date.month));
@@ -89,6 +93,16 @@ class AgendaMonthCalendar extends StatelessWidget {
             7);
     final byDay = agendaEntriesByDay(entries, first, days);
     final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+    final rowHeight = math.max(48.0, 44 * scale);
+    final weeks = [
+      for (var row = 0; row < days ~/ 7; row++)
+        weekOf?.call(first.add(Duration(days: row * 7))),
+    ];
+    final showWeeks = weeks.any((week) => week != null);
+    final weekWidth = 22 * scale.clamp(1.0, 1.4);
+    final muted = Theme.of(context).textTheme.labelSmall?.copyWith(
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    );
     return LayoutBuilder(
       builder: (context, constraints) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -97,6 +111,11 @@ class AgendaMonthCalendar extends StatelessWidget {
             padding: const EdgeInsets.only(top: 4, bottom: 4),
             child: Row(
               children: [
+                if (showWeeks)
+                  SizedBox(
+                    width: weekWidth,
+                    child: Center(child: Text('周', style: muted)),
+                  ),
                 for (final label in ['一', '二', '三', '四', '五', '六', '日'])
                   Expanded(
                     child: Center(
@@ -111,110 +130,152 @@ class AgendaMonthCalendar extends StatelessWidget {
               ],
             ),
           ),
-          GridView.builder(
-            key: const ValueKey('agenda-month-calendar'),
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
-            primary: false,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              mainAxisExtent: math.max(48, 44 * scale),
-            ),
-            itemCount: days,
-            itemBuilder: (context, index) {
-              final day = first.add(Duration(days: index));
-              final dayEntries = byDay[day] ?? const <AgendaEntry>[];
-              final count = dayEntries.length;
-              final selected = day == agendaDay(date);
-              final isToday = today != null && agendaDay(today!) == day;
-              final colors = Theme.of(context).colorScheme;
-              final look = agendaDayColors(
-                context,
-                selected: selected,
-                today: isToday,
-                plain: day.month == date.month
-                    ? colors.onSurface
-                    : colors.outlineVariant,
-              );
-              return Semantics(
-                label: '${agendaDate(day)}，$count项',
-                selected: selected,
-                button: true,
-                child: InkWell(
-                  key: ValueKey('agenda-day-${agendaDate(day)}'),
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () => onSelected(day),
-                  child: Container(
-                    margin: const EdgeInsets.all(2),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // 与列表、周视图一致：今天是实心圆，选中的其他日期是浅色圆。
-                        Container(
-                          width: 30,
-                          height: 30,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: look.circle,
-                            border: look.ring
-                                ? Border.all(
-                                    color: colors.primaryContainer,
-                                    width: 2.5,
-                                  )
-                                : null,
-                          ),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              '${day.day}',
-                              maxLines: 1,
-                              style: TextStyle(
-                                color: look.number,
-                                fontWeight: selected || isToday
-                                    ? FontWeight.w500
-                                    : null,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 3),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (showWeeks)
+                SizedBox(
+                  width: weekWidth,
+                  child: Column(
+                    children: [
+                      for (final (row, week) in weeks.indexed)
                         SizedBox(
-                          height: 5,
-                          child: Row(
+                          key: ValueKey('agenda-month-week-$row'),
+                          height: rowHeight,
+                          // 和日期格一样：30 高的数字区加下面 8 的圆点区，数字和日期对齐。
+                          child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              for (final dot in agendaDayDots(
-                                dayEntries,
-                                colorOf,
-                                colors,
-                              ))
-                                Container(
-                                  width: 5,
-                                  height: 5,
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 1,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: dot,
+                              SizedBox(
+                                height: 30,
+                                child: Center(
+                                  child: Text(
+                                    week == null ? '' : '$week',
+                                    maxLines: 1,
+                                    style: muted?.copyWith(
+                                      fontFeatures: const [
+                                        FontFeature.tabularFigures(),
+                                      ],
+                                    ),
                                   ),
                                 ),
+                              ),
+                              const SizedBox(height: 8),
                             ],
                           ),
                         ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
-              );
-            },
+              Expanded(child: _grid(context, first, days, byDay, rowHeight)),
+            ],
           ),
         ],
       ),
     );
   }
+
+  Widget _grid(
+    BuildContext context,
+    DateTime first,
+    int days,
+    Map<DateTime, List<AgendaEntry>> byDay,
+    double rowHeight,
+  ) => GridView.builder(
+    key: const ValueKey('agenda-month-calendar'),
+    padding: EdgeInsets.zero,
+    shrinkWrap: true,
+    primary: false,
+    physics: const NeverScrollableScrollPhysics(),
+    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 7,
+      mainAxisExtent: rowHeight,
+    ),
+    itemCount: days,
+    itemBuilder: (context, index) {
+      final day = first.add(Duration(days: index));
+      final dayEntries = byDay[day] ?? const <AgendaEntry>[];
+      final count = dayEntries.length;
+      final selected = day == agendaDay(date);
+      final isToday = today != null && agendaDay(today!) == day;
+      final colors = Theme.of(context).colorScheme;
+      final look = agendaDayColors(
+        context,
+        selected: selected,
+        today: isToday,
+        plain: day.month == date.month
+            ? colors.onSurface
+            : colors.outlineVariant,
+      );
+      return Semantics(
+        label: '${agendaDate(day)}，$count项',
+        selected: selected,
+        button: true,
+        child: InkWell(
+          key: ValueKey('agenda-day-${agendaDate(day)}'),
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => onSelected(day),
+          child: Container(
+            margin: const EdgeInsets.all(2),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // 与列表、周视图一致：今天是实心圆，选中的其他日期是浅色圆。
+                Container(
+                  width: 30,
+                  height: 30,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: look.circle,
+                    border: look.ring
+                        ? Border.all(color: colors.primaryContainer, width: 2.5)
+                        : null,
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      '${day.day}',
+                      maxLines: 1,
+                      style: TextStyle(
+                        color: look.number,
+                        fontWeight: selected || isToday
+                            ? FontWeight.w500
+                            : null,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                SizedBox(
+                  height: 5,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      for (final dot in agendaDayDots(
+                        dayEntries,
+                        colorOf,
+                        colors,
+                      ))
+                        Container(
+                          width: 5,
+                          height: 5,
+                          margin: const EdgeInsets.symmetric(horizontal: 1),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: dot,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
 }
 
 class AgendaDateStrip extends StatelessWidget {

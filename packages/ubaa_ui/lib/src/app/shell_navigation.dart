@@ -240,6 +240,9 @@ extension UbaaShellNavigation on _UbaaMainShellState {
       onEnsureSchedule: widget.connecting ? null : widget.agenda.ensureSchedule,
       onChanged: widget.agenda.onChanged,
       onSaveFile: widget.agenda.saveFile,
+      loadWeeks: widget.agenda.loadWeeks,
+      initialMode: widget.agenda.viewMode,
+      onModeChanged: widget.agenda.onViewModeChanged,
     ),
     1 || 3 => FeatureGridView(
       onOpenCloudPrint:

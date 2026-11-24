@@ -118,6 +118,10 @@ extension _UbaaAppHostCallbacks on _UbaaAppHostState {
         term: _controller.currentAgendaTerm,
         onChanged: _controller.notifyAgendaChanged,
         prepareSync: _controller.prepareAgendaSync,
+        loadWeeks: (term, forceRefresh) =>
+            _controller.loadAcademicWeeks(term, forceRefresh: forceRefresh),
+        viewMode: _agendaView,
+        onViewModeChanged: _setAgendaView,
         ensureSchedule: _controller.canSaveScheduleSemester
             ? () async {
                 await _controller.loadHomeSupplement(

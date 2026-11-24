@@ -16,11 +16,16 @@ class AgendaMonthGrid extends StatelessWidget {
     required this.allEntries,
     required this.onSelected,
     required this.onOpen,
+    this.weekOf,
   });
   final DateTime date, today;
   final List<AgendaEntry> entries, allEntries;
   final ValueChanged<DateTime> onSelected;
   final ValueChanged<AgendaEntry> onOpen;
+
+  /// 某天是第几教学周；这个月有周次时，每行左边标出来。
+  final int? Function(DateTime day)? weekOf;
+  static const _weekWidth = 32.0;
   static const _weekdays = ['一', '二', '三', '四', '五', '六', '日'];
   static const _chipHeight = 21.0;
 
@@ -50,12 +55,25 @@ class AgendaMonthGrid extends StatelessWidget {
     final line = BorderSide(color: colors.outlineVariant.withValues(alpha: .6));
     final byDay = agendaEntriesByDay(entries, first, weeks * 7);
     final selectedDay = agendaDay(date), todayDay = agendaDay(today);
+    final numbers = [
+      for (var w = 0; w < weeks; w++)
+        weekOf?.call(first.add(Duration(days: w * 7))),
+    ];
+    final showWeeks = numbers.any((week) => week != null);
+    final muted = theme.textTheme.labelMedium?.copyWith(
+      color: colors.onSurfaceVariant,
+    );
     return Column(
       key: const ValueKey('agenda-month-grid'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           children: [
+            if (showWeeks)
+              SizedBox(
+                width: _weekWidth,
+                child: Text('周', textAlign: TextAlign.center, style: muted),
+              ),
             for (var i = 0; i < 7; i++)
               Expanded(
                 child: Padding(
@@ -83,6 +101,21 @@ class AgendaMonthGrid extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        // 周次和日期数字同一高度，放在每行左上。
+                        if (showWeeks)
+                          Container(
+                            key: ValueKey('agenda-month-week-$w'),
+                            width: _weekWidth,
+                            padding: const EdgeInsets.only(top: 8),
+                            decoration: BoxDecoration(
+                              border: Border(right: line, bottom: line),
+                            ),
+                            child: Text(
+                              numbers[w] == null ? '' : '${numbers[w]}',
+                              textAlign: TextAlign.center,
+                              style: muted,
+                            ),
+                          ),
                         for (var d = 0; d < 7; d++)
                           Expanded(
                             child: _cell(

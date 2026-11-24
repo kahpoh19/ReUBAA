@@ -76,6 +76,7 @@ final class ThemePreferenceStore {
   static const _key = 'flutter.ubaa.preferences.theme';
   static const _accentKey = 'flutter.ubaa.preferences.accent';
   static const _styleKey = 'flutter.ubaa.preferences.ui_style';
+  static const _agendaViewKey = 'flutter.ubaa.preferences.agenda_view';
   static const _modes = {'system', 'light', 'dark'};
   // 平台层不认识具体预设，只校验标识形状；未知预设由界面回落默认。
   static final _accentName = RegExp(r'^[a-z]{1,32}$');
@@ -126,6 +127,23 @@ final class ThemePreferenceStore {
       return Future.error(ArgumentError('未知界面风格'));
     }
     return _enqueue(_styleKey, name);
+  }
+
+  /// 日程页上次选的视图（列表、周、月）；缺失或读取失败时为 null，日程页按列表打开。
+  Future<String?> readAgendaView() async {
+    try {
+      final value = await _values.read(_agendaViewKey);
+      return value != null && _accentName.hasMatch(value) ? value : null;
+    } on Object {
+      return null;
+    }
+  }
+
+  Future<void> writeAgendaView(String name) {
+    if (!_accentName.hasMatch(name)) {
+      return Future.error(ArgumentError('未知日程视图'));
+    }
+    return _enqueue(_agendaViewKey, name);
   }
 
   Future<void> _enqueue(String key, String value) {

@@ -18,7 +18,7 @@ void viewport(WidgetTester tester, Size size) {
 }
 
 void main() {
-  testWidgets('搜索中的词语导航不切换日期，导航按钮聚焦后支持键盘切周', (tester) async {
+  testWidgets('搜索中的词语导航不切换日期，工具栏按钮聚焦后支持键盘切周', (tester) async {
     final backend = MemoryAgenda();
     final actual = await opened(backend);
     await tester.pumpWidget(app(actual));
@@ -33,8 +33,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(backend.lastQuery!.to, original, reason: '编辑搜索文字时保留平台的词语导航');
     FocusManager.instance.primaryFocus?.unfocus();
-    final next = find.byTooltip('下一周');
-    Focus.of(tester.element(next)).requestFocus();
+    // 手机上不放翻页箭头，聚焦工具栏里的其他按钮也能用 Alt+方向键切周。
+    final filter = find.byTooltip('筛选日程');
+    Focus.of(tester.element(filter)).requestFocus();
     await tester.pumpAndSettle();
     await tester.sendKeyDownEvent(LogicalKeyboardKey.altLeft);
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);

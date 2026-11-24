@@ -122,11 +122,14 @@ extension _AgendaToolbar on AgendaViewState {
     ),
   );
 
-  Widget _buildViewControls() {
+  /// 月份（含周次）在左，回到今天和视图切换在右。手机上靠左右滑动翻页，
+  /// 不放翻页箭头，月份有足够位置；宽屏多用鼠标，保留箭头。
+  Widget _buildViewControls({required bool wide}) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final prev = mode == AgendaViewMode.month ? '上一月' : '上一周';
     final next = mode == AgendaViewMode.month ? '下一月' : '下一周';
+    final week = customRange ? null : weekOf(focusDate);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -136,6 +139,7 @@ extension _AgendaToolbar on AgendaViewState {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: InkWell(
+                  key: const ValueKey('agenda-range-label'),
                   borderRadius: BorderRadius.circular(8),
                   onTap: range,
                   child: Padding(
@@ -143,31 +147,52 @@ extension _AgendaToolbar on AgendaViewState {
                       horizontal: 4,
                       vertical: 6,
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            customRange
-                                ? rangeLabel
-                                : '${focusDate.year == agendaDay(now).year ? '' : '${focusDate.year}年'}${focusDate.month}月',
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
+                    // 大字号或年份较长时整体缩小，不再把月份省略成「…」或和箭头叠在一起。
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // 月份和周次按文字基线对齐，周次小一号、颜色淡一些。
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                customRange
+                                    ? rangeLabel
+                                    : '${focusDate.year == agendaDay(now).year ? '' : '${focusDate.year}年'}${focusDate.month}月',
+                                maxLines: 1,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              if (week != null) ...[
+                                const SizedBox(width: 8),
+                                Text(
+                                  '第$week周',
+                                  key: const ValueKey('agenda-week-number'),
+                                  maxLines: 1,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: colors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
-                        ),
-                        Icon(
-                          Icons.arrow_drop_down,
-                          color: colors.onSurfaceVariant,
-                        ),
-                      ],
+                          Icon(
+                            Icons.arrow_drop_down,
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-            // 放在翻页箭头左侧：出现或隐藏时只占用月份那侧的空间，箭头与视图切换不移动。
             if (!_onToday)
               IconButton(
                 visualDensity: VisualDensity.compact,
@@ -176,18 +201,20 @@ extension _AgendaToolbar on AgendaViewState {
                 onPressed: () => goDate(agendaDay(now)),
                 icon: const Icon(Icons.today),
               ),
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              tooltip: prev,
-              onPressed: () => move(-1),
-              icon: const Icon(Icons.chevron_left),
-            ),
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              tooltip: next,
-              onPressed: () => move(1),
-              icon: const Icon(Icons.chevron_right),
-            ),
+            if (wide) ...[
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                tooltip: prev,
+                onPressed: () => move(-1),
+                icon: const Icon(Icons.chevron_left),
+              ),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                tooltip: next,
+                onPressed: () => move(1),
+                icon: const Icon(Icons.chevron_right),
+              ),
+            ],
             SegmentedButton<AgendaViewMode>(
               showSelectedIcon: false,
               style: ButtonStyle(

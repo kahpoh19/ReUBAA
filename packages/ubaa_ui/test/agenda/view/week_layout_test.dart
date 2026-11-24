@@ -28,10 +28,13 @@ void main() {
       await tester.pumpWidget(app(service));
       await tester.pumpAndSettle();
       expect(find.text('十三日待办'), findsOneWidget);
-      await tester.tap(find.byTooltip('下一周'));
+      // 手机上靠左右滑动翻周，没有翻页箭头。
+      expect(find.byTooltip('下一周'), findsNothing);
+      final swipe = find.byKey(const ValueKey('agenda-swipe'));
+      await tester.fling(swipe, const Offset(-300, 0), 1000);
       await tester.pumpAndSettle();
       expect(find.text('十三日待办'), findsOneWidget);
-      await tester.tap(find.byTooltip('上一周'));
+      await tester.fling(swipe, const Offset(300, 0), 1000);
       await tester.pumpAndSettle();
       expect(find.text('十三日待办'), findsOneWidget);
       // 列表点选日期只移动起点，不收成单日，也不需要“显示全部日期”。

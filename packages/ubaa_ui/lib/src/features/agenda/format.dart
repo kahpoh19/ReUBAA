@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show ValueChanged;
 import 'package:ubaa_domain/ubaa_domain.dart';
 
 DateTime campusDate(DateTime value) =>
@@ -88,6 +89,17 @@ FeatureReadNavigation agendaNavigation(AgendaNavigation n) =>
     );
 
 /// 本机日程入口所需的服务与状态由宿主一起投影。
+/// 日程页的三种视图。
+enum AgendaViewMode {
+  list,
+  week,
+  month;
+
+  /// 保存的名字读回来；认不出时为 null，日程页按列表打开。
+  static AgendaViewMode? parse(String? name) =>
+      values.where((mode) => mode.name == name).firstOrNull;
+}
+
 final class AgendaAccess {
   const AgendaAccess({
     this.service,
@@ -97,6 +109,9 @@ final class AgendaAccess {
     this.prepareSync,
     this.ensureSchedule,
     this.saveFile,
+    this.loadWeeks,
+    this.viewMode,
+    this.onViewModeChanged,
   });
   final AgendaService? service;
   final AgendaFailure? failure;
@@ -106,6 +121,14 @@ final class AgendaAccess {
   final Future<void> Function()? ensureSchedule;
   final Future<String?> Function(AgendaExportResult, String, bool Function())?
   saveFile;
+
+  /// 读教学周列表（优先本机缓存），日程页用它标出第几周；没有时不显示周次。
+  final Future<FeatureResult> Function(String term, bool forceRefresh)?
+  loadWeeks;
+
+  /// 上次选的视图，由宿主保存；还没读到或没保存过时为 null。
+  final AgendaViewMode? viewMode;
+  final ValueChanged<AgendaViewMode>? onViewModeChanged;
 }
 
 /// 「1-5周,7-13周[理论]」写成「1–5、7–13 周 · 理论」；认不出的格式原样返回。

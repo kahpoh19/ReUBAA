@@ -35,8 +35,6 @@ part 'filters.dart';
 part 'toolbar.dart';
 part 'data_sheet.dart';
 
-enum AgendaViewMode { list, week, month }
-
 class AgendaView extends StatefulWidget {
   const AgendaView({
     super.key,
@@ -59,6 +57,9 @@ class AgendaView extends StatefulWidget {
     this.prepareSync,
     this.onImportSchedule,
     this.onEnsureSchedule,
+    this.loadWeeks,
+    this.initialMode,
+    this.onModeChanged,
   });
   final AgendaService? service;
   final bool signedIn;
@@ -84,6 +85,16 @@ class AgendaView extends StatefulWidget {
   final AgendaSyncPrepare? prepareSync;
   final VoidCallback? onImportSchedule;
   final Future<void> Function()? onEnsureSchedule;
+
+  /// 读教学周列表，用来标出第几周；为 null 时不显示周次。
+  final Future<FeatureResult> Function(String term, bool forceRefresh)?
+  loadWeeks;
+
+  /// 打开时用的视图，一般是上次选的；读到之前为 null，按列表打开。
+  final AgendaViewMode? initialMode;
+
+  /// 用户点了列表、周、月时回调，宿主保存下来下次打开沿用。
+  final ValueChanged<AgendaViewMode>? onModeChanged;
   @override
   State<AgendaView> createState() => AgendaViewState();
 }
@@ -101,6 +112,13 @@ class AgendaViewState extends State<AgendaView> {
   late DateTime from, to, focusDate;
   AgendaViewMode mode = AgendaViewMode.list;
   bool customRange = false;
+
+  /// 这次打开后用户自己切过视图，迟到的保存值不再覆盖。
+  bool _modeChosen = false;
+
+  /// 当前学期的教学周，只用来标第几周；[_weeksTerm] 是已经发起读取的学期。
+  List<WeekPresentation> _weeks = const [];
+  String? _weeksTerm;
   bool searchVisible = false, noticesDismissed = false;
   String? selectedKey;
   final searchField = TextEditingController();
@@ -224,6 +242,8 @@ class AgendaViewState extends State<AgendaView> {
   void initState() {
     super.initState();
     todos = widget.todoRequest > 0;
+    // 从首页「查看全部」进来要看待办列表，不沿用上次的视图。
+    if (!todos) mode = widget.initialMode ?? AgendaViewMode.list;
     focusDate = agendaDay(now);
     alignRange();
     _scope = _liveScope;
@@ -233,6 +253,7 @@ class AgendaViewState extends State<AgendaView> {
     if (widget.visible) unawaited(load());
     _pullSync();
     _ensureSchedule();
+    _loadWeeks();
   }
 
   @override
@@ -241,12 +262,15 @@ class AgendaViewState extends State<AgendaView> {
     final becameVisible = !oldWidget.visible && widget.visible;
     if (becameVisible) _lastSyncKey = null;
     if (oldWidget.service != widget.service) _listenSync();
+    final restored = _restoreMode(oldWidget.initialMode);
     final scopeChanged = _refreshScope();
     if (scopeChanged || oldWidget.projectionKey != widget.projectionKey) {
       _invalidateProjection();
-    } else if (becameVisible && (_projectionDirty || result == null)) {
+    } else if ((becameVisible && (_projectionDirty || result == null)) ||
+        (restored && widget.visible)) {
       unawaited(load());
     }
+    _loadWeeks();
     if (oldWidget.todoRequest != widget.todoRequest) _showAllTodos();
     _pullSync();
     if (becameVisible ||
@@ -256,6 +280,49 @@ class AgendaViewState extends State<AgendaView> {
       _ensureSchedule();
     }
   }
+
+  /// 保存的视图是异步读回来的，可能晚于日程页第一次打开；用户还没自己切过就换过去。
+  bool _restoreMode(AgendaViewMode? old) {
+    final saved = widget.initialMode;
+    if (saved == null ||
+        saved == old ||
+        saved == mode ||
+        _modeChosen ||
+        todos ||
+        customRange)
+      return false;
+    mode = saved;
+    alignRange();
+    return true;
+  }
+
+  /// 教学周每个学期读一次，优先用本机缓存；读不到就不显示周次，下次打开再试。
+  void _loadWeeks() {
+    final term = widget.term, loader = widget.loadWeeks;
+    if (!widget.visible || loader == null || term.isEmpty || term == _weeksTerm)
+      return;
+    _weeksTerm = term;
+    unawaited(
+      loader(term, false).then(
+        (result) {
+          if (!mounted || widget.term != term) return;
+          final weeks = result.details
+              .map((d) => d.presentation)
+              .whereType<WeekPresentation>()
+              .toList();
+          if (weeks.isEmpty) _weeksTerm = null;
+          setState(() => _weeks = weeks);
+        },
+        onError: (Object _) {
+          if (mounted && widget.term == term) _weeksTerm = null;
+        },
+      ),
+    );
+  }
+
+  /// 某天是本学期第几周；不在学期里或周次没读到时为 null。
+  int? weekOf(DateTime day) =>
+      homeWeekOn(_weeks, day, term: widget.term)?.number;
 
   void _ensureSchedule() {
     if (!widget.visible || widget.onEnsureSchedule == null) return;
@@ -490,6 +557,8 @@ class AgendaViewState extends State<AgendaView> {
   }
 
   void goMode(AgendaViewMode value) {
+    _modeChosen = true;
+    widget.onModeChanged?.call(value);
     setState(() {
       // 待办只有截止时刻，周、月网格里几乎为空；离开列表时退回全部。
       if (value != AgendaViewMode.list) todos = false;
@@ -580,7 +649,7 @@ class AgendaViewState extends State<AgendaView> {
       : agendaWeekStart(focusDate) == agendaWeekStart(agendaDay(now)) &&
             (mode == AgendaViewMode.week || focusDate == agendaDay(now));
 
-  Widget viewControls() => _buildViewControls();
+  Widget viewControls({required bool wide}) => _buildViewControls(wide: wide);
 
   static const _quickFilters = [
     '全部',
@@ -721,7 +790,7 @@ class AgendaViewState extends State<AgendaView> {
               ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: viewControls(),
+              child: viewControls(wide: wide),
             ),
             if (!wide && mode == AgendaViewMode.list)
               Padding(
@@ -760,6 +829,7 @@ class AgendaViewState extends State<AgendaView> {
           allEntries: all,
           onSelected: goDate,
           onOpen: open,
+          weekOf: weekOf,
         );
         // 翻周、翻月和选日按日期先后滑入；切换列表、周、月视图只淡入。
         final content = UiPageTransition(
@@ -809,6 +879,7 @@ class AgendaViewState extends State<AgendaView> {
                           entries: filtered,
                           onSelected: goDate,
                           today: agendaDay(now),
+                          weekOf: weekOf,
                           colorOf: (e) => agendaSourceColor(
                             e,
                             Theme.of(context).colorScheme,
@@ -869,6 +940,7 @@ class AgendaViewState extends State<AgendaView> {
                                 entries: filtered,
                                 onSelected: goDate,
                                 today: agendaDay(now),
+                                weekOf: weekOf,
                                 colorOf: (e) => agendaSourceColor(
                                   e,
                                   Theme.of(context).colorScheme,

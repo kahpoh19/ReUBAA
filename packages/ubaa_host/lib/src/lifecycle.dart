@@ -89,6 +89,8 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
   UbaaAccent _accent = UbaaAccent.blue;
   int _styleRevision = 0;
   UbaaUiStyle _uiStyle = UbaaUiStyle.material;
+  int _agendaViewRevision = 0;
+  AgendaViewMode? _agendaView;
 
   late final _nativeTheme = widget.nativeThemeSync ?? NativeThemeSync();
 
@@ -111,6 +113,24 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
     _styleRevision++;
     setState(() => _uiStyle = value);
     unawaited(_themeStore.writeStyle(value.name).catchError((Object _) {}));
+  }
+
+  void _setAgendaView(AgendaViewMode value) {
+    if (value == _agendaView) return;
+    _agendaViewRevision++;
+    setState(() => _agendaView = value);
+    unawaited(
+      _themeStore.writeAgendaView(value.name).catchError((Object _) {}),
+    );
+  }
+
+  /// 日程页沿用上次选的视图；本次打开后已经切过的以用户为准。
+  Future<void> _restoreAgendaView() async {
+    final revision = _agendaViewRevision;
+    final value = AgendaViewMode.parse(await _themeStore.readAgendaView());
+    if (mounted && revision == _agendaViewRevision && value != _agendaView) {
+      setState(() => _agendaView = value);
+    }
   }
 
   Future<void> _restoreUiStyle() async {
@@ -304,6 +324,7 @@ class _UbaaAppHostState extends State<UbaaAppHost> with WidgetsBindingObserver {
     unawaited(_restoreTheme());
     unawaited(_restoreAccent());
     unawaited(_restoreUiStyle());
+    unawaited(_restoreAgendaView());
     _reminderStore =
         widget.reminderStore ??
         (backend != null || widget.backendFactory != null
