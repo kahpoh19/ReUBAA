@@ -60,6 +60,8 @@ class HomeScheduleSection extends StatelessWidget {
       children: [
         UiSectionHeader(
           title: tomorrow ? '明日课表' : '今日课表',
+          // 明日课表加粗，一眼和今日课表区分开。
+          titleWeight: tomorrow ? FontWeight.bold : null,
           titleTooltip: '打开课表',
           onTitleTap: onOpenSchedule,
           subtitle:

@@ -69,11 +69,20 @@ void main() {
     expect(requests, isEmpty);
     await calendar(tester, DateTime(2026, 10, 25, 12, 15), read);
     expect(find.text('明日课表'), findsOneWidget);
+    // 明日课表标题加粗，今日课表保持常规字重。
+    expect(
+      tester.widget<Text>(find.text('明日课表')).style?.fontWeight,
+      FontWeight.bold,
+    );
     expect(find.text('周一课程'), findsOneWidget);
     expect(find.textContaining('第8周'), findsOneWidget);
     expect(find.text('今日课程'), findsNothing);
     await calendar(tester, DateTime(2026, 10, 26), read);
     expect(find.text('今日课表'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.text('今日课表')).style?.fontWeight,
+      FontWeight.w500,
+    );
     expect(find.text('周一课程'), findsOneWidget);
     expect(requests, ['2026-10-26']);
   });

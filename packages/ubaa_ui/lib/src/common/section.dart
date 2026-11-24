@@ -49,6 +49,7 @@ class UiSectionHeader extends StatelessWidget {
     this.trailing,
     this.onTitleTap,
     this.titleTooltip,
+    this.titleWeight,
   });
   final String title;
   final String? subtitle;
@@ -56,12 +57,17 @@ class UiSectionHeader extends StatelessWidget {
   final VoidCallback? onTitleTap;
   final String? titleTooltip;
 
+  /// 标题字重，默认 w500；需要和同位置的其他标题区分时加粗。
+  final FontWeight? titleWeight;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     Widget heading = Text(
       title,
-      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w500),
+      style: theme.textTheme.titleLarge?.copyWith(
+        fontWeight: titleWeight ?? FontWeight.w500,
+      ),
     );
     if (onTitleTap case final onTap?) {
       heading = Tooltip(
