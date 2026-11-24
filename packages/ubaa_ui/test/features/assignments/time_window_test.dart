@@ -9,7 +9,7 @@ import 'package:ubaa_ui/src/common/tag.dart';
 import 'package:ubaa_ui/src/theme.dart';
 
 void main() {
-  test('签到二维码与直接签到时间窗保留八个分钟边界', () {
+  test('上课二维码与直接上课各自按时间窗开放', () {
     const course = SigninPresentation(
       courseId: '合成课程',
       classBeginTime: '08:00',
@@ -19,7 +19,8 @@ void main() {
       (7, 49, SigninPhase.upcoming, false),
       (7, 50, SigninPhase.open, false),
       (7, 54, SigninPhase.open, false),
-      (7, 55, SigninPhase.open, true),
+      (7, 55, SigninPhase.open, false),
+      (7, 56, SigninPhase.open, true),
       (8, 29, SigninPhase.open, true),
       (8, 30, SigninPhase.open, false),
       (9, 39, SigninPhase.open, false),
@@ -32,18 +33,19 @@ void main() {
         reason: '$hour:$minute',
       );
       expect(window.opensAt, DateTime(2026, 10, 28, 7, 50));
-      expect(window.submitOpensAt, DateTime(2026, 10, 28, 7, 55));
+      expect(window.submitOpensAt, DateTime(2026, 10, 28, 7, 56));
     }
   });
 
   for (final (hour, minute, qrOpen, canSubmit, done, openSheet) in [
     (7, 49, false, false, false, false),
     (7, 50, true, false, false, false),
-    (7, 55, true, true, false, true),
+    (7, 55, true, false, false, false),
+    (7, 56, true, true, false, true),
     (8, 29, true, false, true, true),
   ]) {
     testWidgets(
-      '签到入口 $hour:$minute 已签到=$done',
+      '上课入口 $hour:$minute 已上课=$done',
       (tester) => withClock(
         Clock.fixed(DateTime.utc(2026, 10, 28, hour - 8, minute)),
         () async {
@@ -62,15 +64,15 @@ void main() {
               },
             ),
           );
-          final button = find.widgetWithText(FilledButton, '签到');
-          final qrButton = find.byTooltip('签到二维码');
+          final button = find.widgetWithText(FilledButton, '上课');
+          final qrButton = find.byTooltip('上课二维码');
           if (canSubmit) {
             expect(tester.widget<FilledButton>(button).enabled, isTrue);
           } else {
             expect(button, findsNothing);
           }
           expect(
-            find.text('07:55 起可签'),
+            find.text('07:56 起可上课'),
             qrOpen && hour == 7 && !canSubmit ? findsOneWidget : findsNothing,
           );
           expect(qrButton, qrOpen ? findsOneWidget : findsNothing);
@@ -94,33 +96,33 @@ void main() {
     );
   }
   testWidgets(
-    '缺少排课 ID 时二维码不可用且直接签到不可点',
+    '缺少排课 ID 时二维码不可用且直接上课不可点',
     (tester) =>
         withClock(Clock.fixed(DateTime.utc(2026, 10, 28, 0, 10)), () async {
           await tester.pumpWidget(
             _signinCard(scheduleId: ' ', fetch: (_, _) async => '合成二维码'),
           );
-          final button = find.widgetWithText(FilledButton, '签到');
+          final button = find.widgetWithText(FilledButton, '上课');
           expect(tester.widget<FilledButton>(button).onPressed, isNull);
-          expect(find.byTooltip('签到二维码'), findsNothing);
+          expect(find.byTooltip('上课二维码'), findsNothing);
         }),
   );
 
   testWidgets(
-    '缺少二维码读取回调时仍提供直接签到',
+    '缺少二维码读取回调时仍提供直接上课',
     (tester) =>
         withClock(Clock.fixed(DateTime.utc(2026, 10, 28, 0, 10)), () async {
           await tester.pumpWidget(_signinCard());
-          final button = find.widgetWithText(FilledButton, '签到');
+          final button = find.widgetWithText(FilledButton, '上课');
           expect(tester.widget<FilledButton>(button).enabled, isTrue);
-          expect(find.byTooltip('签到二维码'), findsNothing);
+          expect(find.byTooltip('上课二维码'), findsNothing);
         }),
   );
-  testWidgets('课程时间缺失时不提供签到入口', (tester) async {
+  testWidgets('课程时间缺失时不提供上课入口', (tester) async {
     await tester.pumpWidget(
       _signinCard(begin: '', end: '', fetch: (_, _) async => '合成二维码'),
     );
-    expect(find.widgetWithText(FilledButton, '签到'), findsNothing);
+    expect(find.widgetWithText(FilledButton, '上课'), findsNothing);
   });
   for (final (writesEnabled, eligibility) in [
     (false, ActionEligibility.allowed),
@@ -141,9 +143,9 @@ void main() {
                 },
               ),
             );
-            final button = find.widgetWithText(FilledButton, '签到');
+            final button = find.widgetWithText(FilledButton, '上课');
             expect(tester.widget<FilledButton>(button).enabled, isFalse);
-            await tester.tap(find.byTooltip('签到二维码'));
+            await tester.tap(find.byTooltip('上课二维码'));
             await tester.pumpAndSettle();
             expect(reads, 1);
             await tester.pumpWidget(const SizedBox.shrink());

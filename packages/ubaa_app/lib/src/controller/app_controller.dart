@@ -316,6 +316,15 @@ class AppController extends ControllerState
   int? _campusEpoch;
 
   /// “我的”页面的在线读取；账号、会话或路线代次变化后旧绑定失效。
+  /// SPOC 附件、我的提交与课件的读取和下载；按后端代次重建。
+  SpocFilesService? _spocFilesService;
+  //
+  SpocFilesService? get spocFilesService {
+    final backend = internalBackend;
+    if (backend is! SpocFilesBackend) return null;
+    return _spocFilesService ??= (backend as SpocFilesBackend).spocFiles;
+  }
+
   CampusAccountService? get campusAccountService {
     final backend = internalBackend;
     if (backend is! CampusAccountBackend) return null;
@@ -388,6 +397,50 @@ class AppController extends ControllerState
          diagnostics: diagnostics,
          onReadSchedulerTrace: onReadSchedulerTrace,
        );
+}
+
+extension AppControllerLibraryLoans on AppController {
+  bool get canReadLibraryLoans => internalBackend is LibraryLoansBackend;
+
+  bool get canPrepareLibraryLoanRenew =>
+      internalBackend is LibraryLoanWriteBackend;
+
+  Future<List<LibraryLoan>> readLibraryLoans() {
+    final session = internalCaptureSessionScope();
+    final backend = session.backend;
+    if (backend is! LibraryLoansBackend) {
+      throw UbaaErrorMapper.fromCode(UbaaErrorCode.operationConflict);
+    }
+    return internalReadService(
+      RecoveryTarget.library,
+      DiagnosticOperation.read,
+      () {
+        if (!session.isCurrent) {
+          throw UbaaErrorMapper.fromCode(UbaaErrorCode.operationConflict);
+        }
+        return (backend as LibraryLoansBackend).readLibraryLoans();
+      },
+    );
+  }
+
+  /// 准备单本续借的一次性意图；准备本身不发送写请求。
+  ///
+  /// Core 按记录标识重新读取目标资格与写后核对基线。
+  Future<WriteIntent> prepareLibraryLoanRenew(String loanId) =>
+      internalUserSchoolAction(() async {
+        final backend = internalBackend;
+        if (backend is! LibraryLoanWriteBackend) {
+          throw const BackendException(UbaaErrorCode.unsupported);
+        }
+        final normalized = loanId.trim();
+        if (normalized.isEmpty || normalized.length > 256) {
+          throw const BackendException(UbaaErrorCode.invalidInput);
+        }
+        internalWriteCoordinator.ensureLibraryLoanCanPrepare(normalized);
+        return (backend as LibraryLoanWriteBackend).prepareLibraryLoanRenew(
+          loanId: normalized,
+        );
+      });
 }
 
 extension AppControllerSigninQr on AppController {
@@ -486,7 +539,7 @@ extension AppControllerSigninQr on AppController {
         .toList(growable: false);
     if (details.isEmpty)
       return FeatureResult.empty(resolvedRoute: result.resolvedRoute);
-    final label = status == 1 ? '已签到' : '未签到';
+    final label = status == 1 ? '已上课' : '未上课';
     return FeatureResult.success(
       summary: '${details.length}门${label}课程',
       details: details,

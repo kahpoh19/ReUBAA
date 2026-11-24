@@ -42,7 +42,7 @@
 
 手动触发 Release 时，勾选 `local_macos`，或运行 `gh workflow run release.yml --ref main -f local_macos=true`，可将商店权限检查、iOS 构建与上传、macOS 两种架构发布及验收中的 Apple 作业交给带有 `ubaa-release-macos` 标签的本机 runner。Linux、Windows、Android 和 HarmonyOS 继续使用托管 runner。默认不勾选，普通 PR 和独立验收也继续使用托管 runner。
 
-本机需要保持在线，安装版本清单指定的 Xcode、CocoaPods 和项目工具，并在 runner 环境配置 `UBAA_FLUTTER_HOME`。本机作业复用已安装的 Flutter 和 Pub 缓存，仍核对锁定的 SDK 提交与 Dart 版本。一个 runner 串行执行作业，避免 Apple 临时 Keychain 相互覆盖。macOS arm64 和 x86_64 分别构建，Apple Silicon 主机通过交叉编译生成 Intel 产物。Xcode 通过作业的 `DEVELOPER_DIR` 选择，不改变系统全局设置。注册本机 runner 时仅分配专用标签，并配置作业启动钩子，只允许本仓库 `main` 上手动触发的 Release；签名仍从 `release-production` 环境取得并在作业结束时清理。
+本机需要保持在线，安装版本清单指定的 Xcode、CocoaPods 和项目工具，并在 runner 环境配置 `UBAA_FLUTTER_HOME`。本机作业复用已安装的 Flutter 和 Pub 缓存，仍核对锁定的 SDK 提交与 Dart 版本。一个 runner 串行执行作业，避免 Apple 临时 Keychain 相互覆盖。macOS arm64 和 x86_64 分别构建，Apple Silicon 主机通过交叉编译生成 Intel 产物。Xcode 通过作业的 `DEVELOPER_DIR` 选择，不改变系统全局设置。注册本机 runner 时仅分配专用标签，并配置作业启动钩子，只允许本仓库 `main` 上手动触发的 Release；签名仍从 `release-production` 环境取得并在作业结束时清理。runner 安装在仓库之外，例如 `~/actions-runner/ubaa`；启动钩子和作业期间的描述文件备份也放在 runner 目录内，不放进仓库的 `.ubaa_local/`。
 
 ### 1. 固定候选并记录证据
 
@@ -67,7 +67,7 @@ just flutter-build platform=android-apk mode=debug
 just flutter-build platform=ios-simulator mode=debug
 UBAA_OHOS_NO_CODESIGN=1 just ohos-check mode=debug
 just flutter-artifact-check platform=android-apk artifact=/绝对路径/app-debug.apk
-just release-preflight /项目绝对路径/UBAA2/.ubaa_local/release/license_report
+just release-preflight /项目绝对路径/UBAA2/dist/release/license_report
 ```
 
 在对应 runner 上执行实际目标，缺少工具的平台不声称完成。
@@ -114,7 +114,7 @@ bash scripts/release/store-screenshots.sh
 
 单独生成 AppGallery 手机图时使用 `bash scripts/release/store-screenshots.sh --appgallery`，生成平板图时使用 `bash scripts/release/store-screenshots.sh --appgallery-tablet`。两组各展示首页、课表、日程、成绩、SPOC 作业和考试。[华为开发者中心素材规范](https://developer.huawei.com/consumer/cn/doc/app/agc-help-app-visual-asset-spec-0000002277607976/)按设备分别列出要求：HarmonyOS 手机和平板的应用介绍截图各可上传 3 至 10 张，PNG 单张不超过 5 MB。
 
-脚本把原图写入 `.ubaa_local/store_screenshots/run.*/raw/`，将不带透明通道的 RGB PNG 写入同批次的 `ready/` 并打印实际路径。核对界面、文案、尺寸与清晰度后，把默认三组 PNG 复制到[网站宣传资源目录](../site/public/screenshots/)。AppGallery 手机图复制到 [AppGallery 素材目录](../site/store_assets/appgallery/)，平板图复制到其 [`tablet/` 子目录](../site/store_assets/appgallery/tablet/)；这些商店素材不随网站部署。Git 追踪这些成品、源数据和渲染代码；额外的 iPhone 尺寸留在本地。网站代表图或[横版宣传图](../site/store_assets/ubaa-app-store-creative.png)更新后，运行 `bash scripts/release/site-images.sh` 重新生成截图页的 WebP 和链接分享图；代表图换名或增删时同步调整[应用截图页](../site/features/screenshots.md)，执行 `npm run docs:build`。
+脚本把原图写入 `dist/store_screenshots/run.*/raw/`，将不带透明通道的 RGB PNG 写入同批次的 `ready/` 并打印实际路径。核对界面、文案、尺寸与清晰度后，把默认三组 PNG 复制到[网站宣传资源目录](../site/public/screenshots/)。AppGallery 手机图复制到 [AppGallery 素材目录](../site/store_assets/appgallery/)，平板图复制到其 [`tablet/` 子目录](../site/store_assets/appgallery/tablet/)；这些商店素材不随网站部署。Git 追踪这些成品、源数据和渲染代码；额外的 iPhone 尺寸留在本地。网站代表图或[横版宣传图](../site/store_assets/ubaa-app-store-creative.png)更新后，运行 `bash scripts/release/site-images.sh` 重新生成截图页的 WebP 和链接分享图；代表图换名或增删时同步调整[应用截图页](../site/features/screenshots.md)，执行 `npm run docs:build`。
 
 上传前按 [App Store Connect 截图规范](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications)与华为开发者中心的素材规范复核目标规格。宣传图生成与网站构建不执行商店上传。
 
@@ -167,7 +167,7 @@ HarmonyOS APP 与 iOS IPA 只用于对应商店，不进入公开安装包清单
 
 ### 发布说明格式
 
-分发脚本生成的草稿含 `UBAA <版本号>`、版本说明链接和下载列表。完成最后一次分发后，在草稿的版本说明链接和下载列表之间按以下顺序补写内容，保留下载链接：
+分发脚本生成的草稿只有 `UBAA <版本号>` 和指向本版本[更新日志](../site/changelog/index.md)对应条目的链接；安装包作为草稿附件上传，正文不列下载地址。完成最后一次分发后，在更新说明链接之后按以下顺序补写内容：
 
 - **版本号**：核对草稿版本与 `version.toml`、发布标签一致。
 - **新增**：列出本版本新增的用户可见功能；没有则写“无”。

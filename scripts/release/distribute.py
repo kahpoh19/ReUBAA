@@ -37,7 +37,7 @@ PUBLIC_SUFFIXES = (
 
 
 def main():
-    folder = Path('.ubaa_local/release/public')
+    folder = Path('dist/release/public')
     version, tag, sha, build = (os.environ[key] for key in ('RELEASE_VERSION', 'RELEASE_TAG', 'RELEASE_SHA', 'RELEASE_BUILD'))
     names = [f'UBAA-{version}-{suffix}' for suffix in PUBLIC_SUFFIXES]
     files = [folder / name for name in names]
@@ -56,7 +56,7 @@ def main():
     manifest = folder / 'release.json'
     manifest.write_text(json.dumps({'version': version, 'build': build, 'commit': sha, 'assets': assets}, ensure_ascii=False, indent=2) + '\n')
     notes = folder.parent / 'release_notes.md'
-    notes.write_text(f'UBAA {version}\n\n版本说明：https://www.ubaa.top/guide/ubaa2\n\n下载：\n\n' + '\n'.join(f'- [{asset["name"]}]({asset["url"]})' for asset in assets) + '\n')
+    notes.write_text(f'UBAA {version}\n\n本版更新说明：https://www.ubaa.top/changelog/#v{version.replace(".", "-")}\n')
     subprocess.run(['gh', 'release', 'upload', tag, *[str(path) for path in [*public_files, manifest]], '--clobber'], check=True)
     subprocess.run(['gh', 'release', 'edit', tag, '--notes-file', str(notes)], check=True)
     print('GitHub Release 草稿已准备完成；服务器分发通过后由维护者手动发布草稿')

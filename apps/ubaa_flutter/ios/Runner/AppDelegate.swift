@@ -22,6 +22,9 @@ import UserNotifications
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "ReminderNotificationPlugin") {
       ReminderNotificationPlugin.register(with: registrar)
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "ScheduleWidgetPlugin") {
+      ScheduleWidgetPlugin.register(with: registrar)
+    }
   }
 }
 

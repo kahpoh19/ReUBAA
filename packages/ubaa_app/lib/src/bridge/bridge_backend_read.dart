@@ -67,6 +67,9 @@ mixin BridgeBackendRead {
   );
 
   late final IhomeService ihome = BridgeIhomeService(_context.client);
+  late final SpocFilesService? spocFiles = client.contractVersion() < 82
+      ? null
+      : BridgeSpocFilesService(client);
 
   ReadHealthCloud? get healthCloud => client.contractVersion() < 74
       ? null
@@ -82,6 +85,46 @@ mixin BridgeBackendRead {
     required ConnectionMode route,
     FeatureQuery? query,
   }) => bridgePinnedWriteReadback(_context, operation, route, query);
+
+  List<LibraryLoan> _mapLibraryLoans(BridgeLibraryLoans data) => [
+    for (final loan in data.entries)
+      LibraryLoan(
+        id: loan.id,
+        title: loan.title,
+        author: loan.author,
+        loanDate: loan.loanDate,
+        dueDate: loan.dueDate,
+        renewTimes: loan.renewTimes,
+        canRenewTimes: loan.canRenewTimes,
+        status: LibraryLoanStatus.values.byName(loan.status.name),
+        location: loan.location,
+      ),
+  ];
+
+  Future<List<LibraryLoan>> readLibraryLoans() async {
+    try {
+      final result = await client.currentLibraryLoans();
+      return _mapLibraryLoans(result.data);
+    } on BridgeError catch (error) {
+      throw bridgeMapError(error);
+    }
+  }
+
+  Future<LibraryLoanRouteRead> readLibraryLoansOnRoute({
+    required ConnectionMode route,
+  }) async {
+    try {
+      final result = await client.currentLibraryLoansOnRoute(
+        route: bridgeToBridgeConnectionMode(route),
+      );
+      return LibraryLoanRouteRead(
+        loans: _mapLibraryLoans(result.data),
+        resolvedRoute: bridgeToConnectionMode(result.pinnedRoute),
+      );
+    } on BridgeError catch (error) {
+      throw bridgeMapError(error);
+    }
+  }
 
   Future<CacheUsageSummary> cacheUsage({required String accountId}) =>
       bridgeCacheUsage(_context, accountId);

@@ -4,6 +4,7 @@ import 'agenda/backend.dart';
 import 'app_service.dart';
 import '../contracts/app_service.dart';
 import 'ihome/service.dart';
+import 'features/spoc/files.dart';
 import 'health_cloud.dart';
 import 'finance/service.dart';
 import 'campus/service.dart';
@@ -70,7 +71,12 @@ import 'features/ygdk/reader.dart'
 import 'home/reader.dart' show bridgeReadCachedHome;
 import 'read/cache_query.dart' show bridgeReadCachedQuery;
 import 'read/dispatch.dart' show bridgeLoadFeatureQuery;
-import 'support/mapping.dart' show bridgeDateOnly, bridgeMapError;
+import 'support/mapping.dart'
+    show
+        bridgeDateOnly,
+        bridgeMapError,
+        bridgeToBridgeConnectionMode,
+        bridgeToConnectionMode;
 import 'write/operations.dart'
     show
         bridgeCommitWrite,
@@ -84,7 +90,9 @@ import 'write/operations.dart'
         bridgePrepareEvaluationSubmitCourses,
         bridgePrepareLibbookCancelBooking,
         bridgePrepareLibbookReserve,
+        bridgePrepareLibraryLoanRenew,
         bridgePrepareSigninPerform,
+        bridgePrepareSpocSubmitAssignment,
         bridgePrepareYgdkSubmit,
         bridgeReadWriteReadbackHints;
 
@@ -93,7 +101,7 @@ part 'bridge_backend_auth.dart';
 part 'bridge_backend_read.dart';
 part 'bridge_backend_write.dart';
 
-const _supportedBridgeContractVersion = 78;
+const _supportedBridgeContractVersion = 83;
 const _previousBridgeContractVersion = 54;
 
 /// 基于 FRB opaque client 的生产后端。
@@ -113,9 +121,13 @@ class BridgeBackend
         AgendaProvider,
         HomeTodoBackend,
         IhomeBackend,
+        SpocFilesBackend,
         HealthCloudBackend,
         FinanceBackend,
         CampusAccountBackend,
+        LibraryLoansBackend,
+        LibraryLoanWriteBackend,
+        LibraryLoanReadbackBackend,
         BhpanProvider,
         CloudPrintProvider,
         PinnedWriteReadbackBackend,
@@ -136,6 +148,7 @@ class BridgeBackend
         CancellationWriteBackend,
         LibbookWriteBackend,
         YgdkWriteBackend,
+        SpocWriteBackend,
         CgyyWriteBackend,
         EvaluationWriteBackend,
         RouteSettingsBackend,

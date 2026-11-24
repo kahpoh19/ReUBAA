@@ -6,7 +6,12 @@ import 'package:ubaa_ui/src/write_callbacks.dart';
 import '../../shared/dialogs/sheet.dart';
 import '../../shared/text.dart' show uiHiddenAcademicField;
 import '../../shared/when.dart'
-    show uiCampusNow, uiClock, uiParseCampusTime, uiShortRange;
+    show
+        uiCampusNow,
+        uiClock,
+        uiDirectSigninOpensAt,
+        uiParseCampusTime,
+        uiShortRange;
 import '../../theme.dart' show UbaaTheme;
 import '../../common/tag.dart';
 import 'signin_qr_sheet.dart' show showSigninQrSheet;
@@ -57,8 +62,7 @@ class CourseParticipationContent extends StatelessWidget {
 /// 二维码：课前 10 分钟到下课。
 const _qrLead = Duration(minutes: 10);
 
-/// 直接签到：课前 5 分钟到上课后 30 分钟。
-const _submitLead = Duration(minutes: 5);
+/// 直接签到最晚到上课后 30 分钟。
 const _submitAfterBegin = Duration(minutes: 30);
 
 @visibleForTesting
@@ -85,7 +89,7 @@ signinPhase(SigninPresentation p, DateTime now) {
     );
   }
   final opens = begin.subtract(_qrLead);
-  final submitOpens = begin.subtract(_submitLead);
+  final submitOpens = uiDirectSigninOpensAt(begin);
   final submitCloses = begin.add(_submitAfterBegin);
   final phase = now.isBefore(opens)
       ? SigninPhase.upcoming
@@ -229,7 +233,7 @@ class _SigninCourseCard extends StatelessWidget {
 
     final qrButton = IconButton(
       onPressed: openQr,
-      tooltip: '签到二维码',
+      tooltip: '上课二维码',
       icon: const Icon(Icons.qr_code_2_rounded),
     );
     final signButton = onSignin == null || action == null
@@ -239,12 +243,12 @@ class _SigninCourseCard extends StatelessWidget {
             onPressed: writesEnabled && allowed
                 ? () => onSignin!(action)
                 : null,
-            child: const Text('签到'),
+            child: const Text('上课'),
           )
-        // 课前 10～5 分钟只能扫码，提示直接签到的开始时间；上课 30 分钟后只剩二维码。
+        // 直接签到开放前显示开放时间，课前十分钟起可使用二维码。
         : switch (window.submitOpensAt) {
             final opens? when now.isBefore(opens) => UiTag(
-              '${uiClock(opens)} 起可签',
+              '${uiClock(opens)} 起可上课',
             ),
             _ => null,
           };
@@ -253,13 +257,13 @@ class _SigninCourseCard extends StatelessWidget {
         ? Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const UiTag('已签到', tone: UiTagTone.primary),
+              const UiTag('已上课', tone: UiTagTone.primary),
               const SizedBox(width: 4),
               qrButton,
             ],
           )
         : done
-        ? const UiTag('已签到', tone: UiTagTone.primary)
+        ? const UiTag('已上课', tone: UiTagTone.primary)
         : canSignNow && (canShowQr || signButton != null)
         ? Row(
             mainAxisSize: MainAxisSize.min,
@@ -270,8 +274,8 @@ class _SigninCourseCard extends StatelessWidget {
             ],
           )
         : switch (window.phase) {
-            SigninPhase.upcoming => UiTag('${uiClock(window.opensAt!)} 起可签'),
-            SigninPhase.ended => const UiTag('未签到'),
+            SigninPhase.upcoming => UiTag('${uiClock(window.opensAt!)} 起可上课'),
+            SigninPhase.ended => const UiTag('未上课'),
             _ => null,
           };
     final time =
@@ -344,8 +348,8 @@ class _SigninCourseCard extends StatelessWidget {
   Future<void> _showDetails(BuildContext context) {
     final p = detail.presentation! as SigninPresentation;
     final state = switch (p.signStatus) {
-      0 => '未签到',
-      1 => '已签到',
+      0 => '未上课',
+      1 => '已上课',
       _ => null,
     };
     return showUiSheet<void>(

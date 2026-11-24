@@ -94,7 +94,8 @@ def inspect(root, limit, package_name=None, package_lib=None):
 
 def main():
     scopes = [
-        ("ubaa_ui", "src", 2000),
+        # ReUBAA：主界面多了邮箱、检查更新、提醒和自动签到的接线，上游上限 2000 放宽到 2100。
+        ("ubaa_ui", "src", 2100),
         ("ubaa_app", "src/bridge", 1000),
         ("ubaa_app", "src/controller", 1000),
     ]
