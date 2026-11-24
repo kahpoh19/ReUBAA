@@ -63,7 +63,7 @@ class AutoSigninPanel extends StatelessWidget {
           key: const ValueKey('settings-auto-signin'),
           secondary: const Icon(Icons.how_to_reg_outlined),
           title: const Text('课前自动签到'),
-          subtitle: const Text('上课前 5 分钟起每 30 秒尝试一次，签上或上课 30 分钟后停止'),
+          subtitle: const Text('上课前 4 分钟起每 30 秒尝试一次，签上或上课 30 分钟后停止'),
           value: controls.enabled,
           onChanged: (value) => unawaited(_set(context, value)),
         ),

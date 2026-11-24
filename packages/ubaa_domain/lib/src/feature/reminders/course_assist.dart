@@ -2,8 +2,8 @@
 final class AutoSigninSettings {
   const AutoSigninSettings({this.unlocked = false, this.enabled = false});
 
-  /// 课前多久开始尝试。
-  static const lead = Duration(minutes: 5);
+  /// 课前多久开始尝试，和应用里直接签到的开放时间一致。
+  static const lead = Duration(minutes: 4);
 
   /// 上课后多久还没签上就放弃。
   static const grace = Duration(minutes: 30);

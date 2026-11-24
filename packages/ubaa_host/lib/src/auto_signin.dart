@@ -27,7 +27,7 @@ extension _UbaaAppHostAutoSignin on _UbaaAppHostState {
           note: _keepAlive.isAvailable
               ? '开启后通知栏会常驻一条“后台运行中”，开机自动启动；签到结果会发通知。'
               : Platform.isIOS
-              ? 'iOS 不允许应用常驻后台：课前 5 分钟会发通知，点开应用并保持在前台即可自动签到。'
+              ? 'iOS 不允许应用常驻后台：课前 4 分钟会发通知，点开应用并保持在前台即可自动签到。'
               : '应用保持打开时才会自动签到。',
         );
 
