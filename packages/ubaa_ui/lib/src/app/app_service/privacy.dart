@@ -65,7 +65,7 @@ class _PrivacyAgreementDialogState extends State<_PrivacyAgreementDialog> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('请阅读并同意《隐私政策》后使用 UBAA。'),
+        const Text('请阅读并同意《隐私政策》后使用 ReUBAA。'),
         if (widget.appServiceAvailable) ...[
           const SizedBox(height: 8),
           const Text('同意后将开启产品改进统计，按天汇总功能使用情况与错误类别，不包含密码、成绩、课表等内容，可随时在设置中关闭。'),
