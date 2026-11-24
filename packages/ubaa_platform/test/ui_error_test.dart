@@ -6,6 +6,33 @@ import 'package:ubaa_platform/ubaa_platform.dart';
 
 void main() {
   group('UiErrorMapper', () {
+    test('图书馆 WebVPN 路线拒绝给出切换提示', () {
+      final error = const UiErrorMapper().fromCore(
+        CoreErrorPayload(
+          code: 'permission_denied',
+          diagnostic: ErrorDiagnostic.parse(
+            '{"source":"crates/ubaa_core/src/facade/routing.rs:1","stage":"route","reason":"library_webvpn_unsupported"}',
+          ),
+        ),
+      );
+      expect(error.message, '图书馆借阅暂不支持 WebVPN，请切换为自动或直连');
+    });
+    test('续借复核按原因显示不可续借或目标已变化', () {
+      for (final (code, reason, message) in [
+        ('invalid_input', 'library_renew_unavailable', '这本书当前不可续借，请刷新后查看借阅记录'),
+        ('operation_conflict', 'library_renew_changed', '续借目标已变化，请刷新后重试'),
+      ]) {
+        final error = const UiErrorMapper().fromCore(
+          CoreErrorPayload(
+            code: code,
+            diagnostic: ErrorDiagnostic.parse(
+              '{"source":"crates/ubaa_core/src/features/campus/library_loans.rs:1","stage":"preflight","reason":"$reason"}',
+            ),
+          ),
+        );
+        expect(error.message, message);
+      }
+    });
     test('映射 Core 错误码并使用安全中文文案', () {
       final error = mapCoreError(
         code: 'invalid_credentials',

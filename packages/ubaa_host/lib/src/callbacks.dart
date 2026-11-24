@@ -95,6 +95,24 @@ extension _UbaaAppHostCallbacks on _UbaaAppHostState {
     };
   }
 
+  /// SPOC 附件、我的提交与课件的读取和下载；服务不可用时界面隐藏入口。
+  SpocFilesAccess? get _spocFilesAccess {
+    final service = _controller.spocFilesService;
+    if (service == null) return null;
+    final delivery = SpocFilesDelivery(
+      service: service,
+      saver: widget.bhpanFileSaver,
+    );
+    return SpocFilesAccess(
+      service: service,
+      downloadFile: delivery.downloadAssignment,
+      downloadCourseFile: delivery.downloadCourse,
+    );
+  }
+
+  Future<WriteIntent> _prepareSpocSubmitWrite(SpocSubmitInput input) =>
+      _controller.prepareSpocSubmitAssignment(input.action, input.file.path);
+
   Widget _buildMainShell() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_disposed && _controller.phase == AppPhase.home) {
@@ -154,6 +172,9 @@ extension _UbaaAppHostCallbacks on _UbaaAppHostState {
       appUpdater: widget.appUpdater,
       campusAccountService: _controller.campusAccountService,
       bhpanService: _controller.bhpanService,
+      spocFilesAccess: _spocFilesAccess,
+      onPrepareSpocSubmitWrite: _prepareSpocSubmitWrite,
+      onPickSpocSubmitFile: _pickSpocSubmitFile,
       cloudPrintService: _controller.cloudPrintService,
       onPickPrintFiles: const SystemCloudPrintFiles().pick,
       onPickPrintFolder: const SystemCloudPrintFiles().pickFolder,
@@ -188,6 +209,11 @@ extension _UbaaAppHostCallbacks on _UbaaAppHostState {
           : null,
       onLoadAppVersion: appInformation.version,
       onOpenAppLink: appInformation.open,
+      readLibraryLoans: _controller.canReadLibraryLoans
+          ? _controller.readLibraryLoans
+          : null,
+      pendingLibraryLoans: _controller.writeCoordinator.pendingLibraryLoanIds,
+      onRecheckLibraryLoan: _controller.writeCoordinator.recheckLibraryLoan,
       readCacheEpoch: _controller.readCacheEpoch,
       businessCacheEpoch: _controller.businessCacheEpoch,
       localPreferencesRevision: _preferenceRevision,
@@ -232,6 +258,7 @@ extension _UbaaAppHostCallbacks on _UbaaAppHostState {
       snapshots: _controller.snapshots,
       homeState: _controller.homeState,
       onHomeVisibilityChanged: _controller.setHomeVisible,
+      onFeatureOpened: _controller.recordFeatureOpened,
       onRefreshHome: _controller.refreshHomePage,
       onRetryHomeSource: _controller.retryHomeSource,
       onHomeReminderChanged: _controller.setHomeReminder,
@@ -311,6 +338,9 @@ extension _UbaaAppHostCallbacks on _UbaaAppHostState {
       onPrepareCgyyCancelWrite: _controller.prepareCgyyCancelWrite,
       onPrepareLibbookReserveWrite: _controller.prepareLibbookReserveWrite,
       onPrepareLibbookCancelWrite: _controller.prepareLibbookCancelWrite,
+      onPrepareLibraryLoanRenewWrite: _controller.canPrepareLibraryLoanRenew
+          ? _controller.prepareLibraryLoanRenew
+          : null,
       onPrepareCgyySubmitWrite: _controller.prepareCgyySubmitWrite,
       onPrepareYgdkSubmitWrite: hasYgdkSubmissionCapabilities
           ? _controller.prepareYgdkWrite

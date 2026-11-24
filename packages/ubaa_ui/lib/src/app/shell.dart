@@ -8,13 +8,13 @@ import '../features/bhpan/view.dart';
 import '../features/cloud_print/view.dart';
 import '../features/agenda/view.dart';
 import '../features/agenda/format.dart' show campusDate, AgendaAccess;
-import '../shared/tab_navigation.dart'
-    show TabPager, CompactNavigationBar, currentTabPager;
+import '../shared/tab_navigation.dart' show TabPager, currentTabPager;
 import '../features/ihome/view.dart';
 import '../features/health_cloud/view.dart';
 import '../features/finance/view.dart';
 import '../features/app_update/banner.dart' show AppUpdateBanner;
 import '../features/mail/view.dart';
+import '../features/library_loans/view.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import '../shared/app_bar_slot.dart' show UiAppBarSlot;
@@ -33,6 +33,7 @@ import 'about.dart' show AboutView;
 import 'home.dart' show FeatureGridView, HomeView, HomeViewState;
 import 'destination.dart';
 import 'navigation/rail.dart' show uiShellRail;
+import 'navigation/bottom_bar.dart' show uiShellBottomBar;
 import '../features/home/shell_helpers.dart';
 import '../features/home/ygdk_schedule.dart';
 import '../theme.dart';
@@ -44,6 +45,7 @@ import 'settings/notification_settings.dart' show UiNotificationControls;
 import 'settings/auto_signin_settings.dart' show UiAutoSigninControls;
 import 'write_readback_notice.dart' show WriteReadbackNotice;
 import '../common/feature_detail.dart' show FeatureDetailView;
+import '../features/coursework/spoc_files_access.dart' show SpocFilesAccess;
 import '../common/read_navigator.dart'
     show FeatureReadNavigator, FeatureReadNavigatorState;
 import 'account/campus_account_loader.dart';
@@ -119,6 +121,9 @@ class UbaaMainShell extends StatefulWidget {
     this.mailService,
     this.appUpdater,
     this.onOpenAppLink,
+    this.readLibraryLoans,
+    this.pendingLibraryLoans = const {},
+    this.onRecheckLibraryLoan,
     this.onLoadAllGrades,
     this.gradeScoreNotice,
     this.gradeCheckRoute,
@@ -140,6 +145,7 @@ class UbaaMainShell extends StatefulWidget {
     this.placePreferences = const {},
     this.onSavePlacePreference,
     this.onLoadRecentFeatures,
+    this.onFeatureOpened,
     this.onSaveRecentFeatures,
     this.activeRoutes = const <ConnectionMode>[],
     this.onReadDiagnostics,
@@ -159,11 +165,15 @@ class UbaaMainShell extends StatefulWidget {
     this.onPrepareCgyyCancelWrite,
     this.onPrepareLibbookReserveWrite,
     this.onPrepareLibbookCancelWrite,
+    this.onPrepareLibraryLoanRenewWrite,
     this.onPrepareCgyySubmitWrite,
     this.onPrepareEvaluationWrite,
     this.onPrepareYgdkSubmitWrite,
+    this.onPrepareSpocSubmitWrite,
+    this.onPickSpocSubmitFile,
     this.onPickYgdkPhoto,
     this.onCaptureYgdkPhoto,
+    this.spocFilesAccess,
     this.onDiscardWriteIntent,
     this.onCommitWrite,
     this.onWriteSuccess,
@@ -193,6 +203,7 @@ class UbaaMainShell extends StatefulWidget {
   final Map<String, String> placePreferences;
   final Future<void> Function(String key, String value)? onSavePlacePreference;
   final Future<List<FeatureId>> Function()? onLoadRecentFeatures;
+  final ValueChanged<String>? onFeatureOpened;
   final Future<void> Function(List<FeatureId>)? onSaveRecentFeatures;
   final RoutePolicy routePolicy;
   final AppServiceControls? appService;
@@ -272,6 +283,9 @@ class UbaaMainShell extends StatefulWidget {
   /// 关于页的检查更新；为空时不显示。
   final AppUpdater? appUpdater;
   final Future<bool> Function(AppLink)? onOpenAppLink;
+  final LibraryLoansReader? readLibraryLoans;
+  final Set<String> pendingLibraryLoans;
+  final LibraryLoanRenewStarter? onRecheckLibraryLoan;
   final GradesAggregateLoader? onLoadAllGrades;
   final GradeScoreNotice? gradeScoreNotice;
   final ConnectionMode? gradeCheckRoute;
@@ -297,10 +311,16 @@ class UbaaMainShell extends StatefulWidget {
   final CgyyCancelPreparer? onPrepareCgyyCancelWrite;
   final LibbookReservePreparer? onPrepareLibbookReserveWrite;
   final LibbookCancelPreparer? onPrepareLibbookCancelWrite;
+  final LibraryLoanRenewPreparer? onPrepareLibraryLoanRenewWrite;
   final CgyyReservationPreparer? onPrepareCgyySubmitWrite;
   final EvaluationSubmitPreparer? onPrepareEvaluationWrite;
   final YgdkSubmitPreparer? onPrepareYgdkSubmitWrite;
+  final SpocSubmitPreparer? onPrepareSpocSubmitWrite;
+  final SpocSubmitFilePicker? onPickSpocSubmitFile;
   final YgdkPhotoPicker? onPickYgdkPhoto;
+
+  /// SPOC 附件、我的提交与课件的读取和下载；未接线的宿主为 null。
+  final SpocFilesAccess? spocFilesAccess;
   final YgdkPhotoPicker? onCaptureYgdkPhoto;
   final WriteIntentDiscarder? onDiscardWriteIntent;
   final Future<WriteCommitResult> Function(String intentId)? onCommitWrite;
@@ -382,7 +402,11 @@ class _UbaaMainShellState extends State<UbaaMainShell> {
       if (mounted) setState(() {});
     },
   );
-  void _changeNavigation(VoidCallback change) => setState(change);
+  void _changeNavigation(VoidCallback change, {String? openedFeature}) {
+    setState(change);
+    if (openedFeature != null) widget.onFeatureOpened?.call(openedFeature);
+  }
+
   int _lockRefreshRevision = 0;
   void _refreshLockDisplay() => setState(() => _lockRefreshRevision++);
   final Map<FeatureId, GlobalKey<FeatureReadNavigatorState>> _readPageKeys = {};
@@ -510,7 +534,10 @@ class _UbaaMainShellState extends State<UbaaMainShell> {
     final generation = _accountGeneration;
     // 打开功能列表会回到第一层；先按第一层播放进入过渡，避免随后再反向播放一次。
     _readDepths[feature] = 1;
-    setState(() => _openedFeature = feature);
+    _changeNavigation(
+      () => _openedFeature = feature,
+      openedFeature: feature.wireName,
+    );
     _recordFeatureVisit(feature);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted &&
@@ -716,28 +743,10 @@ class _UbaaMainShellState extends State<UbaaMainShell> {
         ),
         bottomNavigationBar: wide
             ? null
-            : CompactNavigationBar(
-                child: NavigationBar(
-                  height:
-                      56 +
-                      (MediaQuery.textScalerOf(context).scale(12) - 12) * 3,
-                  // 底栏放四个分类和“我的”；设置、关于与退出收在“我的”页。
-                  selectedIndex: _selectedIndex < UiDestination.settings.index
-                      ? _selectedIndex
-                      : 0,
-                  onDestinationSelected: _selectTab,
-                  destinations: _tabs
-                      .take(UiDestination.settings.index)
-                      .map(
-                        (tab) => NavigationDestination(
-                          key: ValueKey<String>('tab-${tab.label}'),
-                          icon: Icon(tab.icon),
-                          selectedIcon: Icon(tab.selectedIcon),
-                          label: tab.label,
-                        ),
-                      )
-                      .toList(),
-                ),
+            : uiShellBottomBar(
+                context,
+                selectedIndex: _selectedIndex,
+                onSelectTab: _selectTab,
               ),
       ),
     );

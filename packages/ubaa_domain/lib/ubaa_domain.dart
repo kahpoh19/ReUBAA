@@ -12,6 +12,7 @@ export 'src/app_update.dart';
 export 'src/feature/schedule/widget_snapshot.dart';
 
 export 'src/feature/ihome.dart';
+export 'src/feature/spoc_files.dart';
 export 'src/feature/health_cloud.dart';
 
 export 'src/feature/schedule/home.dart';
@@ -29,6 +30,7 @@ export 'src/agenda/export.dart';
 
 export 'src/finance/service.dart';
 export 'src/mail/service.dart';
+export 'src/feature/library/loans.dart';
 
 export 'src/privacy/bundled_policy.dart';
 export 'src/privacy/policy.dart';
