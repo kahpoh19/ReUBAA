@@ -41,6 +41,10 @@ class KeepAliveChannel(
                     KeepAlive.openAutostart(context)
                     result.success(null)
                 }
+                "setHiddenFromRecents" -> {
+                    KeepAlive.setHiddenFromRecents(context, call.arguments as? Boolean ?: false)
+                    result.success(null)
+                }
                 else -> result.notImplemented()
             }
         }

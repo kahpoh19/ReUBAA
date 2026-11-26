@@ -13,6 +13,8 @@ final class UiAutoSigninControls {
     this.batteryUnrestricted,
     this.onRequestUnrestricted,
     this.onOpenAutostart,
+    this.hideFromRecents = false,
+    this.onHideFromRecentsChanged,
     this.status,
     this.note,
   });
@@ -26,6 +28,10 @@ final class UiAutoSigninControls {
   final bool? batteryUnrestricted;
   final VoidCallback? onRequestUnrestricted, onOpenAutostart;
 
+  /// 是否从最近任务里隐藏；不支持的平台不提供 [onHideFromRecentsChanged]，不显示开关。
+  final bool hideFromRecents;
+  final Future<void> Function(bool hidden)? onHideFromRecentsChanged;
+
   /// 最近一次签到的结果。
   final String? status;
 
@@ -37,10 +43,14 @@ class AutoSigninPanel extends StatelessWidget {
   const AutoSigninPanel({super.key, required this.controls});
   final UiAutoSigninControls controls;
 
-  Future<void> _set(BuildContext context, bool value) async {
+  Future<void> _set(
+    BuildContext context,
+    Future<void> Function(bool value) change,
+    bool value,
+  ) async {
     final messenger = ScaffoldMessenger.maybeOf(context);
     try {
-      await controls.onChanged(value);
+      await change(value);
     } on Object {
       if (messenger != null) {
         UbaaFeedback.showOn(
@@ -57,6 +67,7 @@ class AutoSigninPanel extends StatelessWidget {
     final theme = Theme.of(context);
     final muted = theme.colorScheme.onSurfaceVariant;
     final battery = controls.batteryUnrestricted;
+    final hideFromRecents = controls.onHideFromRecentsChanged;
     return Column(
       children: [
         SwitchListTile(
@@ -65,7 +76,8 @@ class AutoSigninPanel extends StatelessWidget {
           title: const Text('课前自动签到'),
           subtitle: const Text('上课前 4 分钟起每 30 秒尝试一次，签上或上课 30 分钟后停止'),
           value: controls.enabled,
-          onChanged: (value) => unawaited(_set(context, value)),
+          onChanged: (value) =>
+              unawaited(_set(context, controls.onChanged, value)),
         ),
         if (controls.status case final status?)
           ListTile(
@@ -96,6 +108,18 @@ class AutoSigninPanel extends StatelessWidget {
             trailing: const Icon(Icons.open_in_new, size: 18),
             onTap: controls.onOpenAutostart,
           ),
+          if (hideFromRecents != null) ...[
+            const Divider(height: 1),
+            SwitchListTile(
+              key: const ValueKey('settings-auto-signin-hide-recents'),
+              secondary: const Icon(Icons.visibility_off_outlined),
+              title: const Text('从后台隐藏'),
+              subtitle: const Text('最近任务里不显示 ReUBAA，免得被误划掉；从桌面图标打开'),
+              value: controls.hideFromRecents,
+              onChanged: (value) =>
+                  unawaited(_set(context, hideFromRecents, value)),
+            ),
+          ],
         ],
         if (controls.note case final note?)
           Padding(

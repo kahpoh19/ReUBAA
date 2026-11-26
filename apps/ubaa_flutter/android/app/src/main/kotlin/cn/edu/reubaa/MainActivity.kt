@@ -22,6 +22,12 @@ class MainActivity : FlutterActivity() {
     override fun provideFlutterEngine(context: Context): FlutterEngine? =
         EngineHolder.cached() ?: if (KeepAlive.enabled(context)) EngineHolder.ensure(context) else null
 
+    // 每次回到前台按设置重新隐藏一遍，从桌面新开的任务也算在内。
+    override fun onResume() {
+        super.onResume()
+        KeepAlive.applyRecents(this)
+    }
+
     // 托管的引擎在界面关掉后要继续跑。
     override fun shouldDestroyEngineWithHost(): Boolean {
         val engine = flutterEngine

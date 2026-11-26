@@ -31,6 +31,9 @@ abstract interface class KeepAliveGateway {
 
   /// 尽量打开厂商的自启动管理页，找不到就打开应用详情页。
   Future<void> openAutostartSettings();
+
+  /// 从系统的最近任务里隐藏应用；从桌面图标打开不受影响。
+  Future<void> setHiddenFromRecents(bool hidden);
 }
 
 final class UnavailableKeepAliveGateway implements KeepAliveGateway {
@@ -51,6 +54,8 @@ final class UnavailableKeepAliveGateway implements KeepAliveGateway {
   Future<void> requestUnrestricted() => Future.value();
   @override
   Future<void> openAutostartSettings() => Future.value();
+  @override
+  Future<void> setHiddenFromRecents(bool hidden) => Future.value();
 }
 
 final class ChannelKeepAliveGateway implements KeepAliveGateway {
@@ -105,6 +110,11 @@ final class ChannelKeepAliveGateway implements KeepAliveGateway {
   @override
   Future<void> openAutostartSettings() => isAvailable
       ? _channel.invokeMethod<void>('openAutostart')
+      : Future.value();
+
+  @override
+  Future<void> setHiddenFromRecents(bool hidden) => isAvailable
+      ? _channel.invokeMethod<void>('setHiddenFromRecents', hidden)
       : Future.value();
 }
 

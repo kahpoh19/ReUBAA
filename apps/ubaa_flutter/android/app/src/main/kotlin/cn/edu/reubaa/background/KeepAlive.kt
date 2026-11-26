@@ -1,5 +1,6 @@
 package cn.edu.reubaa.background
 
+import android.app.ActivityManager
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.ComponentName
@@ -22,8 +23,9 @@ object KeepAlive {
     private const val PREFS = "ubaa_keep_alive"
     private const val KEY_ENABLED = "enabled"
     private const val KEY_WAKES = "wakes"
+    private const val KEY_HIDDEN = "hidden_from_recents"
 
-    // 一节课的签到窗口是课前 5 分钟到课后 30 分钟，唤醒锁多留 5 分钟，Dart 做完会提前释放。
+    // 一节课的签到窗口是课前 4 分钟到课后 30 分钟，唤醒锁多留几分钟，Dart 做完会提前释放。
     private const val HOLD_MS = 40 * 60 * 1000L
     private var wakeLock: PowerManager.WakeLock? = null
 
@@ -39,6 +41,30 @@ object KeepAlive {
             scheduleWakes(context, emptyList())
             context.stopService(Intent(context, KeepAliveService::class.java))
             release()
+        }
+        applyRecents(context)
+    }
+
+    /** 从最近任务里隐藏，免得被顺手划掉；从桌面图标打开不受影响。 */
+    fun setHiddenFromRecents(context: Context, hidden: Boolean) {
+        prefs(context).edit().putBoolean(KEY_HIDDEN, hidden).apply()
+        applyRecents(context)
+    }
+
+    /** 保活关着时一律不隐藏。界面每次回到前台都会再设一遍，新开的任务也跟着隐藏。 */
+    fun applyRecents(context: Context) {
+        val hidden = enabled(context) && prefs(context).getBoolean(KEY_HIDDEN, false)
+        val tasks = try {
+            context.getSystemService(ActivityManager::class.java)?.appTasks
+        } catch (_: Exception) {
+            null
+        } ?: return
+        for (task in tasks) {
+            try {
+                task.setExcludeFromRecents(hidden)
+            } catch (_: Exception) {
+                // 任务刚好结束时会抛异常，跳过即可。
+            }
         }
     }
 
