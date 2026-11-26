@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'ubaa_bindings'
-  s.version          = '1.1.3'
+  s.version          = '1.1.4'
   s.summary          = 'UBAA Flutter Rust bridge.'
   s.description      = <<-DESC
 UBAA Flutter Rust bridge generated bindings.
