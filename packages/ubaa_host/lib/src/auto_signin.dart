@@ -23,6 +23,10 @@ extension _UbaaAppHostAutoSignin on _UbaaAppHostState {
           onRequestUnrestricted: () => unawaited(_requestUnrestricted()),
           onOpenAutostart: () =>
               unawaited(_keepAlive.openAutostartSettings().catchError((_) {})),
+          hideFromRecents: _autoSignin.hideFromRecents,
+          onHideFromRecentsChanged: _keepAlive.isAvailable
+              ? _setHideFromRecents
+              : null,
           status: _signinStatus,
           note: _keepAlive.isAvailable
               ? '开启后通知栏会常驻一条“后台运行中”，开机自动启动；签到结果会发通知。'
@@ -47,8 +51,9 @@ extension _UbaaAppHostAutoSignin on _UbaaAppHostState {
       _autoSignin = value;
       _autoSigninLoaded = true;
     });
-    // 原生侧的开机自启开关以这里为准，顺手同步一次。
+    // 原生侧的开机自启和最近任务隐藏以这里为准，顺手同步一次。
     unawaited(_keepAlive.setEnabled(value.enabled).catchError((_) {}));
+    unawaited(_syncHiddenFromRecents());
     if (value.enabled) unawaited(_refreshBattery());
     _syncAutoSignin();
   }
@@ -81,12 +86,27 @@ extension _UbaaAppHostAutoSignin on _UbaaAppHostState {
     } on Object {
       // 原生服务起不来时前台仍然可以签。
     }
+    await _syncHiddenFromRecents();
     if (enabled) {
       await _refreshBattery();
       _signinStamp = null;
       _syncAutoSignin();
     } else {
       _stopAutoSignin();
+    }
+  }
+
+  Future<void> _setHideFromRecents(bool hidden) async {
+    await _saveAutoSignin(_autoSignin.copyWith(hideFromRecents: hidden));
+    await _syncHiddenFromRecents();
+  }
+
+  /// 功能关着时总是不隐藏；系统不支持时只是不隐藏，不影响其他设置。
+  Future<void> _syncHiddenFromRecents() async {
+    try {
+      await _keepAlive.setHiddenFromRecents(_autoSignin.hidesFromRecents);
+    } on Object {
+      // 留给下次打开应用时再同步。
     }
   }
 
